@@ -55,7 +55,7 @@ function Dashboard() {
                     <button
                         className="manage-technician-btn"
                         onClick={handleManageTechnician}
-                    >hi
+                    >hiii
                         Manage Technicians
                     </button>
                 </div>
