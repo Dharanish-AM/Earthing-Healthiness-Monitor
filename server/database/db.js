@@ -1,13 +1,17 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-
-dotenv.config();
+const { v4: uuidv4 } = require("uuid");
 
 const poleSchema = new mongoose.Schema(
   {
-    pole_id: { type: Number, required: true, unique: true, index: true },
+    pole_id: {
+      type: Number,
+      required: true,
+      unique: true,
+      index: true,
+      default: uuidv4,
+    },
     coordinates: {
       type: [String],
       validate: {
@@ -41,7 +45,13 @@ const poleSchema = new mongoose.Schema(
 
 const employeeSchema = new mongoose.Schema(
   {
-    employee_id: { type: Number, required: true, unique: true, index: true },
+    employee_id: {
+      type: Number,
+      required: true,
+      unique: true,
+      index: true,
+      default: uuidv4,
+    },
     name: { type: String, required: true, trim: true },
     age: { type: Number, min: 18, max: 65 },
     email: {
@@ -76,7 +86,13 @@ const employeeSchema = new mongoose.Schema(
 
 const technicianSchema = new mongoose.Schema(
   {
-    technician_id: { type: Number, required: true, unique: true, index: true },
+    technician_id: {
+      type: Number,
+      required: true,
+      unique: true,
+      index: true,
+      default: uuidv4,
+    },
     name: { type: String, required: true, trim: true },
     age: { type: Number, min: 18, max: 65 },
     email: {
@@ -136,7 +152,7 @@ async function Login(employee_id, password) {
     const employee = await Employee.findOne({ employee_id });
     if (!employee) {
       console.log("Invalid User");
-      return;
+      return null;
     }
 
     const isMatch = await bcrypt.compare(password, employee.password);
@@ -152,9 +168,11 @@ async function Login(employee_id, password) {
       return token;
     } else {
       console.log("Invalid User");
+      return null;
     }
   } catch (err) {
     console.error("Error during login:", err);
+    throw err;
   }
 }
 
@@ -197,7 +215,9 @@ async function addPole(pole_id, lat, long) {
 
 async function addTechnician(name, age, email, phone, address) {
   try {
+    const technician_id = generateUniqueId();
     const technician = new Technician({
+      technician_id,
       name,
       age,
       email,
@@ -208,7 +228,8 @@ async function addTechnician(name, age, email, phone, address) {
     console.log("Technician added:", savedTechnician);
     return savedTechnician;
   } catch (err) {
-    console.error("Error while adding technician:", err);
+    console.log("Error while adding technician:", err);
+    throw err;
   }
 }
 
@@ -289,6 +310,18 @@ async function getAllTechnicians() {
     console.error("Error fetching technicians:", error);
     return [];
   }
+}
+
+function generateUniqueId() {
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Month (01-12)
+  const day = String(now.getDate()).padStart(2, "0"); // Day (01-31)
+  const hour = String(now.getHours()).padStart(2, "0"); // Hour (00-23)
+  const minute = String(now.getMinutes()).padStart(2, "0"); // Minute (00-59)
+  const second = String(now.getSeconds()).padStart(2, "0"); // Second (00-59)
+
+  return `${year}${month}${day}${hour}${minute}${second}`;
 }
 
 mongoose
