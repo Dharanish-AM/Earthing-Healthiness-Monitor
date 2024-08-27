@@ -16,7 +16,7 @@ function AuthPage() {
             <label>Employee ID:</label>
             <input type="text" id="employeeid" name="employeeid" onChange={empid} />
             <label>Password:</label>
-            <input type="password" id="password" name="password" onC />
+            <input type="password" id="password" name="password" onChange={setPassword} />
             <button type="submit">Login</button>
         </div>
     )
