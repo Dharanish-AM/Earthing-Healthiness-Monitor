@@ -4,21 +4,22 @@ import { Link } from "react-router-dom";
 
 function Header({ onProfileClick }) {
     return (
-        <header className="header">
-            <p className="header-title">SIH</p>
-            <nav>
-                <ul className="nav-list">
-                    <Link to="/"><li>Home</li></Link>
-                    <Link to="/map"><li>Map</li></Link>
-                    <Link to="/history"><li>History</li></Link>
-                </ul>
-            </nav>
-            <img
-                src={accIcon}
-                onClick={onProfileClick}
-                className="acc-icon"
-                alt="account"
-            />
+        <header className="header-container">
+            <div className="header-container-home">
+                <div>
+
+                </div>
+            </div>
+            <div className="header-container-map">
+                <div>
+
+                </div>
+            </div>
+            <div className="header-container-history">
+                <div>
+
+                </div>
+            </div>
         </header>
     );
 }

@@ -1,7 +1,7 @@
 import serial
 import requests
 
-ser = serial.Serial("COM8", 9600, timeout=1)
+ser = serial.Serial("COM3", 9600, timeout=1)
 url = "http://localhost:8000/loradata"
 
 try:

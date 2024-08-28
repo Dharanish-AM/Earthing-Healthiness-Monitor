@@ -1,9 +1,11 @@
 const jwt = require("jsonwebtoken");
 const jwtdecode = require("jwt-decode");
 
-function verifyToken(authHeader) {
+function verifyToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+
   if (!authHeader) {
-    throw new Error("Authorization header is missing.");
+    return res.status(401).json({ error: "Authorization header is missing." });
   }
 
   const parts = authHeader.split(" ");
@@ -12,17 +14,21 @@ function verifyToken(authHeader) {
     const token = parts[1];
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Decoded Token:", decoded);
-
-      const decodedToken = jwtDecode(token);
+      const decodedToken = jwt.verify(token, process.env.JWT_KEY);
       console.log("Decoded Token Payload:", decodedToken);
 
-      return decodedToken;
+      req.user = decodedToken;
+
+      next();
     } catch (error) {
-      throw new Error("Invalid or expired token.");
+      console.error("Token verification error:", error.message);
+      return res.status(401).json({ error: "Invalid or expired token." });
     }
   } else {
-    throw new Error("Invalid Authorization header format.");
+    return res.status(400).json({ error: "Invalid Authorization header format." });
   }
+}
+
+module.exports = {
+  verifyToken
 }

@@ -14,12 +14,17 @@ const counterSchema = new mongoose.Schema(
 const Counter = mongoose.model("Counter", counterSchema);
 
 async function getNextSequenceValue(sequenceName, prefix) {
-  const sequence = await Counter.findByIdAndUpdate(
-    sequenceName,
-    { $inc: { sequence_value: 1 } },
-    { new: true, upsert: true }
-  );
-  return prefix + sequence.sequence_value.toString().padStart(6, "0");
+  try {
+    const sequence = await Counter.findByIdAndUpdate(
+      sequenceName,
+      { $inc: { sequence_value: 1 } },
+      { new: true, upsert: true }
+    );
+    return prefix + sequence.sequence_value.toString().padStart(6, "0");
+  } catch (error) {
+    console.error("Error getting next sequence value:", error);
+    throw error;
+  }
 }
 
 const poleSchema = new mongoose.Schema(
@@ -45,20 +50,21 @@ const poleSchema = new mongoose.Schema(
       enum: ["Active", "Inactive", "Under Maintenance"],
       default: "Active",
     },
-    last_maintenance: { type: Date, default: Date.now },
+    last_maintenance: { type: Date, default: null },
     total: { type: Number, default: 0, min: 0 },
     count: { type: Number, default: 0, min: 0 },
-    daily_average: {
-      type: [Number],
-      validate: {
-        validator: function (arr) {
-          return arr.length <= 7;
-        },
-        message: "Daily average array can contain up to 7 values.",
+    daily_average: [{
+      time: {
+        type: Date,
+        required: true,
       },
-    },
-  },
-  { timestamps: true }
+      current: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+    }],
+  }
 );
 
 const employeeSchema = new mongoose.Schema(
@@ -97,8 +103,7 @@ const employeeSchema = new mongoose.Schema(
     },
     address: String,
     password: { type: String, required: true },
-  },
-  { timestamps: true }
+  }
 );
 
 const technicianSchema = new mongoose.Schema(
@@ -143,8 +148,11 @@ const technicianSchema = new mongoose.Schema(
       trim: true,
       minlength: 8,
     },
-  },
-  { timestamps: true }
+    active: {
+      type: Boolean,
+      default: true,
+    },
+  }
 );
 
 const historySchema = new mongoose.Schema(
@@ -257,17 +265,17 @@ async function addTechnician(name, age, email, phone, address, password) {
 
 async function addPole(lat, long) {
   try {
-    const pole_id = await getNextSequenceValue("pole_id");
+    const pole_id = await getNextSequenceValue("pole_id", "P");
     const pole = new Pole({
       pole_id,
       coordinates: [lat, long],
     });
-
     const result = await pole.save();
     console.log("Pole added:", result);
     return result;
   } catch (error) {
     console.error("Error while adding pole:", error);
+    throw error;
   }
 }
 
@@ -349,13 +357,121 @@ async function getAllTechnicians() {
   }
 }
 
-async function getAllEmployees() {
+async function fetchEmployeeDetails(emp_id) {
+  try {
+    const employee = await Employee.findOne({ employee_id: emp_id });
+    if (!employee) {
+      console.log("Employee not found");
+      return null;
+    }
+    console.log("Employee Details:", employee);
+    return employee;
+  } catch (err) {
+    console.error("Error fetching employee details:", err);
+    throw err;
+  }
+}
+
+async function fetchAllEmployeesDetails() {
   try {
     const employees = await Employee.find();
-    console.log("Employees:", employees);
+    if (employees.length === 0) {
+      console.log("No employees found");
+      return [];
+    }
+    console.log("Employee Details:", employees);
     return employees;
   } catch (err) {
-    console.error("Error fetching employees:", err);
+    console.error("Error fetching employee details:", err);
+    throw err;
+  }
+}
+
+
+async function fetchPolesStatus() {
+  try {
+    const poles = await Pole.find({}, 'pole_id status');
+
+    if (!poles || poles.length === 0) {
+      console.log("No poles found");
+      return [];
+    }
+    console.log("Pole Statuses:", poles);
+    return poles;
+  } catch (err) {
+    console.error("Error fetching pole statuses:", err);
+    throw err;
+  }
+}
+
+async function fetchActiveTechnicians() {
+  try {
+    const activeTechnicians = await Technician.find({ active: true });
+    return activeTechnicians;
+  } catch (error) {
+    console.error('Error fetching active technicians:', error);
+    throw error;
+  }
+}
+
+async function fetchAllEmployees() {
+  try {
+    const employees = await Employee.find();
+    console.log("All Employees:", employees);
+    return employees;
+  } catch (err) {
+    console.error("Error fetching all employees:", err);
+    throw err;
+  }
+}
+
+async function setCurrentInfo(pole_id, current) {
+  try {
+    const pole = await Pole.findOne({ pole_id });
+
+    if (!pole) {
+      console.log(`Pole with ID ${pole_id} not found.`);
+      return;
+    }
+
+    if (typeof current !== 'number' || current < 0) {
+      console.log(`Invalid current value: ${current}. Must be a non-negative number.`);
+      return;
+    }
+
+    const dateTime = new Date();
+    pole.total += current;
+    pole.count++;
+
+    if (pole.count >= 4) {
+      const avg = pole.total / pole.count;
+      pole.daily_average.push({ time: dateTime, current: avg });
+      pole.total = 0;
+      pole.count = 0;
+    }
+
+    await pole.save();
+    console.log(`Pole ID ${pole_id} updated successfully.`);
+
+  } catch (err) {
+    console.error("Error while setting current information:", err);
+  }
+}
+
+async function fetchPoleChartData(pole_id) {
+  try {
+    const pole = await Pole.findOne({ pole_id });
+    if (!pole) {
+      console.log(`Pole with ID ${pole_id} not found.`);
+      return null;
+    }
+
+    const poleChartdata = pole.daily_average;
+
+    return poleChartdata;
+  } catch (err) {
+    console.error("Error while fetching pole chart data:", err);
+    return null;
   }
 }
 
@@ -369,14 +485,27 @@ mongoose
   });
 
 module.exports = {
+  Pole,
+  Employee,
+  Technician,
+  History,
+  Counter,
+
+  Login,
   addEmployee,
   addTechnician,
+  addPole,
   fetchPoleID,
   fetchPoleCords,
   getPoleDetails,
   assignTechnician,
   fetchHistory,
   getAllTechnicians,
-  getAllEmployees,
-  Login,
+  fetchEmployeeDetails,
+  fetchPolesStatus,
+  fetchActiveTechnicians,
+  getNextSequenceValue,
+  fetchAllEmployeesDetails,
+  setCurrentInfo,
 };
+

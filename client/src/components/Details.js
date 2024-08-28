@@ -29,7 +29,6 @@ function Details() {
         sensorfitDate: "23-8-2024",
     });
 
-    // Use Effect for tracking the position
     useEffect(() => {
         const watchId = navigator.geolocation.watchPosition(
             (pos) => {
@@ -41,7 +40,7 @@ function Details() {
             { enableHighAccuracy: true }
         );
 
-        return () => navigator.geolocation.clearWatch(watchId); // Cleanup the watch on unmount
+        return () => navigator.geolocation.clearWatch(watchId);
     }, []);
 
     const customIcon = new L.Icon({

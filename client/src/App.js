@@ -7,11 +7,13 @@ import History from './pages/History';
 import Technician from './components/Technician'
 import ManageSensors from './components/ManageSensors';
 import AuthPage from "./pages/AuthPage.js"
+import Admin from "./pages/Admin.js"
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<AuthPage />} />
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/admin" element={<Admin />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="home/details" element={<Details />} />
       <Route path="/map" element={<Map />} />
