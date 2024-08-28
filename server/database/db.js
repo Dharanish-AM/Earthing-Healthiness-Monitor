@@ -233,56 +233,56 @@ async function addTechnician(name, age, email, phone, address) {
   }
 }
 
-async function fetchSensorIDs() {
+async function fetchPoleID() {
   try {
-    const sensors = await Sensor.find();
-    const sensorIDs = sensors.map((sensor) => sensor._id);
-    console.log("Sensor IDs:", sensorIDs);
-    return sensorIDs;
+    const Poles = await Pole.find();
+    const PoleIDs = Poles.map((Pole) => Pole._id);
+    console.log("Pole IDs:", PoleIDs);
+    return PoleIDs;
   } catch (error) {
     console.error("Error fetching sensor IDs:", error);
   }
 }
 
-async function fetchSensorCords() {
+async function fetchPoleCords() {
   try {
-    const sensors = await Sensor.find();
-    const sensorCords = sensors.map((sensor) => sensor.coordinates);
-    console.log("Sensor Coordinates:", sensorCords);
-    return sensorCords;
+    const Poles = await Pole.find();
+    const PoleCords = Poles.map((Pole) => Pole.coordinates);
+    console.log("Pole Coordinates:", PoleCords);
+    return PoleCords;
   } catch (err) {
     console.error("Error fetching sensor cords:", err);
   }
 }
 
-async function getSensorDetails(sensor_id) {
+async function getPoleDetails(Pole_id) {
   try {
-    const sensor = await Sensor.findOne({ _id: sensor_id });
+    const pole = await Pole.findOne({ _id: Pole_id });
 
-    if (!sensor) {
-      console.log("Sensor not found");
+    if (!pole) {
+      console.log("Pole not found");
       return null;
     }
 
-    console.log("Sensor Details:", sensor);
-    return sensor;
+    console.log("Pole Details:", Pole);
+    return Pole;
   } catch (err) {
     console.error("Error fetching sensor details:", err);
   }
 }
 
-async function assignTechnician(sensor_id, technician_id) {
+async function assignTechnician(Pole_id, technician_id) {
   try {
-    const sensor = await Sensor.findOne({ _id: sensor_id });
+    const pole = await Pole.findOne({ _id: Pole_id });
 
-    if (!sensor) {
-      console.log("Sensor not found");
+    if (!pole) {
+      console.log("pole not found");
       return null;
     }
 
     sensor.technician_id = technician_id;
 
-    const updatedSensor = await sensor.save();
+    const updatedSensor = await Pole.save();
 
     console.log("Technician assigned:", updatedSensor);
     return updatedSensor;
@@ -338,9 +338,9 @@ module.exports = {
   addEmployee,
   addPole,
   addTechnician,
-  fetchSensorIDs,
-  fetchSensorCords,
-  getSensorDetails,
+  fetchPoleID,
+  fetchPoleCords,
+  getPoleDetails,
   assignTechnician,
   fetchHistory,
   getAllTechnicians,
