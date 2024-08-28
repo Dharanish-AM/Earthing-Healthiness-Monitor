@@ -5,7 +5,6 @@ import Header from "../components/Header";
 import Account from "../components/Account";
 
 function Dashboard() {
-    // eslint-disable-next-line no-unused-vars
     const [details, setDetails] = useState([
         { id: 1, name: 'Sensor 1', status: false, location: 'Room 101' },
         { id: 2, name: 'Sensor 2', status: true, location: 'Room 102' },
