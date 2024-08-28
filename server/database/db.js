@@ -3,14 +3,32 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 
+const counterSchema = new mongoose.Schema(
+  {
+    _id: String,
+    sequence_value: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
+const Counter = mongoose.model("Counter", counterSchema);
+
+async function getNextSequenceValue(sequenceName, prefix) {
+  const sequence = await Counter.findByIdAndUpdate(
+    sequenceName,
+    { $inc: { sequence_value: 1 } },
+    { new: true, upsert: true }
+  );
+  return prefix + sequence.sequence_value.toString().padStart(6, "0");
+}
+
 const poleSchema = new mongoose.Schema(
   {
     pole_id: {
-      type: Number,
+      type: String,
       required: true,
       unique: true,
       index: true,
-      default: uuidv4,
     },
     coordinates: {
       type: [String],
@@ -46,11 +64,10 @@ const poleSchema = new mongoose.Schema(
 const employeeSchema = new mongoose.Schema(
   {
     employee_id: {
-      type: Number,
+      type: String,
       required: true,
       unique: true,
       index: true,
-      default: uuidv4,
     },
     name: { type: String, required: true, trim: true },
     age: { type: Number, min: 18, max: 65 },
@@ -87,11 +104,10 @@ const employeeSchema = new mongoose.Schema(
 const technicianSchema = new mongoose.Schema(
   {
     technician_id: {
-      type: Number,
+      type: String,
       required: true,
       unique: true,
       index: true,
-      default: uuidv4,
     },
     name: { type: String, required: true, trim: true },
     age: { type: Number, min: 18, max: 65 },
@@ -131,17 +147,16 @@ const technicianSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
 const historySchema = new mongoose.Schema(
   {
-    pole_id: { type: Number, required: true, index: true },
+    pole_id: { type: String, required: true, index: true },
     date_time: { type: Date, required: true, default: Date.now },
     status: {
       type: String,
       required: true,
       enum: ["Fixed", "Pending", "In Progress"],
     },
-    technician_id: { type: Number, required: true, index: true },
+    technician_id: { type: String, required: true, index: true },
     severity: { type: String, enum: ["Low", "Medium", "High"] },
     repaired_on: { type: Date, default: null },
     description: { type: String, trim: true },
@@ -165,7 +180,6 @@ async function Login(employee_id, password) {
     const isMatch = await bcrypt.compare(password, employee.password);
     if (isMatch) {
       console.log("User Valid");
-
       const token = jwt.sign(
         { employee_id: employee.employee_id },
         process.env.JWT_KEY,
@@ -185,11 +199,11 @@ async function Login(employee_id, password) {
 
 async function addEmployee(name, age, email, phone, address, password) {
   try {
+    const employee_id = await getNextSequenceValue("employee_id", "E");
     const salt = await bcrypt.genSalt(10);
-
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const newEmployee = new Employee({
+      employee_id,
       name,
       age,
       email,
@@ -197,16 +211,53 @@ async function addEmployee(name, age, email, phone, address, password) {
       address,
       password: hashedPassword,
     });
-
-    const savedEmployee = await newEmployee.save();
-    console.log("Employee added:", savedEmployee);
+    return await newEmployee.save();
   } catch (err) {
-    console.error("Error adding employee:", err);
+    throw err;
   }
 }
 
-async function addPole(pole_id, lat, long) {
+async function addTechnician(name, age, email, phone, address, password) {
   try {
+    const technician_id = await getNextSequenceValue("technician_id", "T");
+
+    if (!password || typeof password !== 'string') {
+      throw new Error("Invalid password provided");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+
+    if (!salt) {
+      throw new Error("Failed to generate salt");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    if (!hashedPassword) {
+      throw new Error("Failed to hash password");
+    }
+
+    const technician = new Technician({
+      technician_id,
+      name,
+      age,
+      email,
+      phone,
+      address,
+      password: hashedPassword,
+    });
+    const savedTechnician = await technician.save();
+    console.log("Technician added:", savedTechnician);
+    return savedTechnician;
+  } catch (err) {
+    console.error("Error while adding technician:", err);
+    throw err;
+  }
+}
+
+async function addPole(lat, long) {
+  try {
+    const pole_id = await getNextSequenceValue("pole_id");
     const pole = new Pole({
       pole_id,
       coordinates: [lat, long],
@@ -220,34 +271,14 @@ async function addPole(pole_id, lat, long) {
   }
 }
 
-async function addTechnician(name, age, email, phone, address) {
-  try {
-    const technician_id = generateUniqueId();
-    const technician = new Technician({
-      technician_id,
-      name,
-      age,
-      email,
-      phone,
-      address,
-    });
-    const savedTechnician = await technician.save();
-    console.log("Technician added:", savedTechnician);
-    return savedTechnician;
-  } catch (err) {
-    console.log("Error while adding technician:", err);
-    throw err;
-  }
-}
-
 async function fetchPoleID() {
   try {
     const Poles = await Pole.find();
-    const PoleIDs = Poles.map((Pole) => Pole._id);
+    const PoleIDs = Poles.map((Pole) => Pole.pole_id);
     console.log("Pole IDs:", PoleIDs);
     return PoleIDs;
   } catch (error) {
-    console.error("Error fetching sensor IDs:", error);
+    console.error("Error fetching pole IDs:", error);
   }
 }
 
@@ -258,41 +289,41 @@ async function fetchPoleCords() {
     console.log("Pole Coordinates:", PoleCords);
     return PoleCords;
   } catch (err) {
-    console.error("Error fetching sensor cords:", err);
+    console.error("Error fetching pole cords:", err);
   }
 }
 
-async function getPoleDetails(Pole_id) {
+async function getPoleDetails(pole_id) {
   try {
-    const pole = await Pole.findOne({ _id: Pole_id });
+    const pole = await Pole.findOne({ pole_id });
 
     if (!pole) {
       console.log("Pole not found");
       return null;
     }
 
-    console.log("Pole Details:", Pole);
-    return Pole;
+    console.log("Pole Details:", pole);
+    return pole;
   } catch (err) {
-    console.error("Error fetching sensor details:", err);
+    console.error("Error fetching pole details:", err);
   }
 }
 
-async function assignTechnician(Pole_id, technician_id) {
+async function assignTechnician(pole_id, technician_id) {
   try {
-    const pole = await Pole.findOne({ _id: Pole_id });
+    const pole = await Pole.findOne({ pole_id });
 
     if (!pole) {
-      console.log("pole not found");
+      console.log("Pole not found");
       return null;
     }
 
-    sensor.technician_id = technician_id;
+    pole.technician_id = technician_id;
 
-    const updatedSensor = await Pole.save();
+    const updatedPole = await pole.save();
 
-    console.log("Technician assigned:", updatedSensor);
-    return updatedSensor;
+    console.log("Technician assigned:", updatedPole);
+    return updatedPole;
   } catch (err) {
     console.error("Error assigning technician:", err);
   }
@@ -311,39 +342,34 @@ async function fetchHistory() {
 async function getAllTechnicians() {
   try {
     const technicians = await Technician.find();
-    console.log("All Technicians:", technicians);
+    console.log("Technicians:", technicians);
     return technicians;
-  } catch (error) {
-    console.error("Error fetching technicians:", error);
-    return [];
+  } catch (err) {
+    console.error("Error fetching technicians:", err);
   }
 }
 
-function generateUniqueId() {
-  const now = new Date();
-  const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
-  const month = String(now.getMonth() + 1).padStart(2, "0"); // Month (01-12)
-  const day = String(now.getDate()).padStart(2, "0"); // Day (01-31)
-  const hour = String(now.getHours()).padStart(2, "0"); // Hour (00-23)
-  const minute = String(now.getMinutes()).padStart(2, "0"); // Minute (00-59)
-  const second = String(now.getSeconds()).padStart(2, "0"); // Second (00-59)
-
-  return `${year}${month}${day}${hour}${minute}${second}`;
+async function getAllEmployees() {
+  try {
+    const employees = await Employee.find();
+    console.log("Employees:", employees);
+    return employees;
+  } catch (err) {
+    console.error("Error fetching employees:", err);
+  }
 }
 
 mongoose
   .connect(process.env.DB_URI)
   .then(() => {
-    console.log("MongoDB Connected Successfully");
+    console.log("MongoDB Connected");
   })
-  .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
   });
 
 module.exports = {
-  Login,
   addEmployee,
-  addPole,
   addTechnician,
   fetchPoleID,
   fetchPoleCords,
@@ -351,4 +377,6 @@ module.exports = {
   assignTechnician,
   fetchHistory,
   getAllTechnicians,
+  getAllEmployees,
+  Login,
 };

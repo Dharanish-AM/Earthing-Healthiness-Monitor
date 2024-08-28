@@ -27,30 +27,14 @@ function AuthPage() {
   }
 
   return (
-    <div className="authpage-container">
-      <h1>Auth Page</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="employeeid">Employee ID:</label>
-        <input
-          type="text"
-          id="employeeid"
-          name="employeeid"
-          onChange={(e) => setEmpID(e.target.value)}
-          value={empid}
-        />
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          onChange={(e) => setPassword(e.target.value)}
-          value={password}
-        />
-        <button onClick={handleSubmit} type="submit">
-          Login
-        </button>
-      </form>
-    </div>
+    <section className="authpage-container">
+      <div className="">
+
+      </div>
+      <div>
+
+      </div>
+    </section>
   );
 }
 

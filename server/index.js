@@ -43,12 +43,25 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/addtechnician", async (req, res) => {
-  const { name, age, email, phone, address } = req.body;
+  const { name, age, email, phone, address, password } = req.body;
   try {
-    const newTechnician = await addTechnician(name, age, email, phone, address);
+    const newTechnician = await addTechnician(name, age, email, phone, address, password);
     res.status(201).json({ success: true, technician: newTechnician });
   } catch (err) {
     console.log("Error during adding technician:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.post("/addemployee", async (req, res) => {
+  const { name, age, email, phone, address, password } = req.body;
+  console.log(name, age, email, phone, address, password);
+  try {
+    const newEmployee = await addEmployee(name, age, email, phone, address, password);
+    console.log(newEmployee);
+    res.status(201).json({ success: true, employee: newEmployee });
+  } catch (err) {
+    console.error("Error during adding employee:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
