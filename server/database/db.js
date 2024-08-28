@@ -121,9 +121,16 @@ const technicianSchema = new mongoose.Schema(
     },
     address: String,
     history: { type: [String], default: [] },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 8,
+    },
   },
   { timestamps: true }
 );
+
 
 const historySchema = new mongoose.Schema(
   {
