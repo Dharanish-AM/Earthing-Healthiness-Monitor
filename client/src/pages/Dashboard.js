@@ -49,7 +49,7 @@ function Dashboard() {
                                 ACTIVE ERRORS
                             </div>
                             <div className="dashboard-container-content-left-bottom-left-image">
-
+ 
                             </div>
                             <div className="dashboard-container-content-left-bottom-left-text">
                                 <span>NO OF ERRORS : </span>

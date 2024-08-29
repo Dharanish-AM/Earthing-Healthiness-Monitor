@@ -475,6 +475,27 @@ async function fetchPoleChartData(pole_id) {
   }
 }
 
+async function getCurrentInfo(pole_id) {
+  try {
+    console.log("Searching for pole with ID:", pole_id);
+    const pole = await Pole.find({ pole_id: "P000001" });
+    console.log(pole)
+    if (!pole) {
+      console.error(`Pole not found for ID: ${pole_id}`);
+      throw new Error("Pole not found");
+    }
+
+    const { timestamp, current } = pole.daily_average || {};
+    //console.log(`Current info for pole ${pole_id}:`, { timestamp, current });
+    return { timestamp, current };
+  } catch (err) {
+    console.error("Error in getCurrentInfo:", err);
+    throw err;
+  }
+}
+
+
+
 mongoose
   .connect(process.env.DB_URI)
   .then(() => {
@@ -507,5 +528,6 @@ module.exports = {
   getNextSequenceValue,
   fetchAllEmployeesDetails,
   setCurrentInfo,
+  getCurrentInfo,
 };
 

@@ -29,6 +29,7 @@ const {
   getNextSequenceValue,
   fetchAllEmployeesDetails,
   setCurrentInfo,
+  getCurrentInfo,
 } = require("./database/db");
 
 const { verifyToken } = require("./middleware/Token")
@@ -149,6 +150,26 @@ app.post("/loradata", async (req, res) => {
   }
 });
 
+app.get("/getcurrentlora", async (req, res) => {
+  try {
+    const { pole_id } = req.query; 
+    if (!pole_id) {
+      return res.status(400).json({ success: false, message: "pole_id is required" });
+    }
+
+    const poledata = await getCurrentInfo(pole_id);
+    res.status(200).json({
+      success: true,
+      poledata: {
+        current: poledata.current,
+        time: poledata.timestamp
+      }
+    });
+  } catch (err) {
+    console.error("Error fetching current info:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

@@ -135,7 +135,7 @@
 .header-container {
   height: 100%;
   width: 100%;
-  background-color: aqua;
+  background-color: #295F98;
   display: flex;
   flex-direction: column;
 }
@@ -324,7 +324,7 @@
   width: 92%;
   display: flex;
   flex-direction: row;
-  background-color: #888888;
+  background-color: #CDC2A5 ;
 }
 
 .dashboard-container-content-left {
@@ -341,7 +341,7 @@
 .dashboard-container-content-left-top {
   height: 45%;
   width: 100%;
-  background-color: #FFFEF8;
+  background-color: #F5F5F5;
   border-radius: 50px;
   border: 2px solid black;
   display: flex;
@@ -380,7 +380,7 @@
 .dashboard-container-content-left-bottom {
   height: 45%;
   width: 100%;
-  background-color: #FFFEF8;
+  background-color: #F5F5F5 ;
   border-radius: 50px;
   border: 2px solid black;
   display: flex;
@@ -477,7 +477,7 @@
 .dashboard-container-content-right-profile {
   height: calc(100% - 54px);
   width: calc(100% - 54px);
-  background-color: #FFFEF8;
+  background-color: #F5F5F5;
   border-radius: 50px;
   border: 2px solid black;
   padding: 25px;

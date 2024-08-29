@@ -15,7 +15,7 @@ void loop() {
   Serial.println("Data Sent");
 
   LoRa.beginPacket();           
-  LoRa.print("{\"id\": \"000001\", \"ct\": \"25\"}");   
+  LoRa.print("{\"id\": \"P000001\", \"ct\": \"25\"}");   
   LoRa.endPacket();            
 
   delay(5000);                  
