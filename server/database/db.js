@@ -27,33 +27,33 @@ async function getNextSequenceValue(sequenceName, prefix) {
   }
 }
 
-const poleSchema = new mongoose.Schema(
-  {
-    pole_id: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
-    coordinates: {
-      type: [String],
-      validate: {
-        validator: function (arr) {
-          return arr.length === 2;
-        },
-        message:
-          "Coordinates must be an array of two strings [latitude, longitude].",
+const poleSchema = new mongoose.Schema({
+  pole_id: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  },
+  coordinates: {
+    type: [String],
+    validate: {
+      validator: function (arr) {
+        return arr.length === 2;
       },
+      message:
+        "Coordinates must be an array of two strings [latitude, longitude].",
     },
-    status: {
-      type: String,
-      enum: ["Active", "Inactive", "Under Maintenance"],
-      default: "Active",
-    },
-    last_maintenance: { type: Date, default: null },
-    total: { type: Number, default: 0, min: 0 },
-    count: { type: Number, default: 0, min: 0 },
-    daily_average: [{
+  },
+  status: {
+    type: String,
+    enum: ["Active", "Inactive", "Under Maintenance"],
+    default: "Active",
+  },
+  last_maintenance: { type: Date, default: null },
+  total: { type: Number, default: 0, min: 0 },
+  count: { type: Number, default: 0, min: 0 },
+  daily_average: [
+    {
       time: {
         type: Date,
         required: true,
@@ -63,97 +63,93 @@ const poleSchema = new mongoose.Schema(
         required: true,
         min: 0,
       },
-    }],
-  }
-);
+    },
+  ],
+});
 
-const employeeSchema = new mongoose.Schema(
-  {
-    employee_id: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
-    name: { type: String, required: true, trim: true },
-    age: { type: Number, min: 18, max: 65 },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-      validate: {
-        validator: function (v) {
-          return /^\S+@\S+\.\S+$/.test(v);
-        },
-        message: (props) => `${props.value} is not a valid email!`,
+const employeeSchema = new mongoose.Schema({
+  employee_id: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  },
+  name: { type: String, required: true, trim: true },
+  age: { type: Number, min: 18, max: 65 },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return /^\S+@\S+\.\S+$/.test(v);
       },
+      message: (props) => `${props.value} is not a valid email!`,
     },
-    phone: {
-      type: String,
-      required: true,
-      trim: true,
-      validate: {
-        validator: function (v) {
-          return /^\d{10}$/.test(v);
-        },
-        message: (props) => `${props.value} is not a valid phone number!`,
+  },
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return /^\d{10}$/.test(v);
       },
+      message: (props) => `${props.value} is not a valid phone number!`,
     },
-    address: String,
-    password: { type: String, required: true },
-  }
-);
+  },
+  address: String,
+  password: { type: String, required: true },
+});
 
-const technicianSchema = new mongoose.Schema(
-  {
-    technician_id: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
-    name: { type: String, required: true, trim: true },
-    age: { type: Number, min: 18, max: 65 },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-      validate: {
-        validator: function (v) {
-          return /^\S+@\S+\.\S+$/.test(v);
-        },
-        message: (props) => `${props.value} is not a valid email!`,
+const technicianSchema = new mongoose.Schema({
+  technician_id: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  },
+  name: { type: String, required: true, trim: true },
+  age: { type: Number, min: 18, max: 65 },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return /^\S+@\S+\.\S+$/.test(v);
       },
+      message: (props) => `${props.value} is not a valid email!`,
     },
-    phone: {
-      type: String,
-      required: true,
-      trim: true,
-      validate: {
-        validator: function (v) {
-          return /^\d{10}$/.test(v);
-        },
-        message: (props) => `${props.value} is not a valid phone number!`,
+  },
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return /^\d{10}$/.test(v);
       },
+      message: (props) => `${props.value} is not a valid phone number!`,
     },
-    address: String,
-    history: { type: [String], default: [] },
-    password: {
-      type: String,
-      required: true,
-      trim: true,
-      minlength: 8,
-    },
-    active: {
-      type: Boolean,
-      default: true,
-    },
-  }
-);
+  },
+  address: String,
+  history: { type: [String], default: [] },
+  password: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 8,
+  },
+  active: {
+    type: Boolean,
+    default: true,
+  },
+});
 
 const historySchema = new mongoose.Schema(
   {
@@ -229,7 +225,7 @@ async function addTechnician(name, age, email, phone, address, password) {
   try {
     const technician_id = await getNextSequenceValue("technician_id", "T");
 
-    if (!password || typeof password !== 'string') {
+    if (!password || typeof password !== "string") {
       throw new Error("Invalid password provided");
     }
 
@@ -387,10 +383,9 @@ async function fetchAllEmployeesDetails() {
   }
 }
 
-
 async function fetchPolesStatus() {
   try {
-    const poles = await Pole.find({}, 'pole_id status');
+    const poles = await Pole.find({}, "pole_id status");
 
     if (!poles || poles.length === 0) {
       console.log("No poles found");
@@ -409,7 +404,7 @@ async function fetchActiveTechnicians() {
     const activeTechnicians = await Technician.find({ active: true });
     return activeTechnicians;
   } catch (error) {
-    console.error('Error fetching active technicians:', error);
+    console.error("Error fetching active technicians:", error);
     throw error;
   }
 }
@@ -434,8 +429,10 @@ async function setCurrentInfo(pole_id, current) {
       return;
     }
 
-    if (typeof current !== 'number' || current < 0) {
-      console.log(`Invalid current value: ${current}. Must be a non-negative number.`);
+    if (typeof current !== "number" || current < 0) {
+      console.log(
+        `Invalid current value: ${current}. Must be a non-negative number.`
+      );
       return;
     }
 
@@ -452,49 +449,29 @@ async function setCurrentInfo(pole_id, current) {
 
     await pole.save();
     console.log(`Pole ID ${pole_id} updated successfully.`);
-
   } catch (err) {
     console.error("Error while setting current information:", err);
-  }
-}
-
-async function fetchPoleChartData(pole_id) {
-  try {
-    const pole = await Pole.findOne({ pole_id });
-    if (!pole) {
-      console.log(`Pole with ID ${pole_id} not found.`);
-      return null;
-    }
-
-    const poleChartdata = pole.daily_average;
-
-    return poleChartdata;
-  } catch (err) {
-    console.error("Error while fetching pole chart data:", err);
-    return null;
   }
 }
 
 async function getCurrentInfo(pole_id) {
   try {
     console.log("Searching for pole with ID:", pole_id);
-    const pole = await Pole.find({ pole_id: "P000001" });
-    console.log(pole)
-    if (!pole) {
+    const poledetails = await Pole.findOne({ pole_id: "P000001" });
+    if (!poledetails) {
       console.error(`Pole not found for ID: ${pole_id}`);
       throw new Error("Pole not found");
     }
-
-    const { timestamp, current } = pole.daily_average || {};
-    //console.log(`Current info for pole ${pole_id}:`, { timestamp, current });
-    return { timestamp, current };
+    console.log(poledetails);
+    console.log(poledetails.status);
+    const { time, current } = poledetails.daily_average[0];
+    console.log(`Current info for pole ${pole_id}:`, { time, current });
+    return { time, current };
   } catch (err) {
     console.error("Error in getCurrentInfo:", err);
     throw err;
   }
 }
-
-
 
 mongoose
   .connect(process.env.DB_URI)
@@ -529,5 +506,5 @@ module.exports = {
   fetchAllEmployeesDetails,
   setCurrentInfo,
   getCurrentInfo,
+  fetchAllEmployees,
 };
-

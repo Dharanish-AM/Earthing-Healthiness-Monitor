@@ -32,13 +32,13 @@ const {
   getCurrentInfo,
 } = require("./database/db");
 
-const { verifyToken } = require("./middleware/Token")
+const { verifyToken } = require("./middleware/Token");
 
 app.use(express.json());
 
 app.post("/login", async (req, res) => {
   const { emp_id, password } = req.body;
-  console.log(emp_id, password)
+  console.log(emp_id, password);
   try {
     const token = await Login(emp_id, password);
     if (token) {
@@ -61,7 +61,7 @@ app.get("/dashboard", verifyToken, async (req, res) => {
     const [polesStatus, activeTechnicians, empDetails] = await Promise.all([
       polesStatusPromise,
       activeTechniciansPromise,
-      empDetailsPromise
+      empDetailsPromise,
     ]);
 
     if (!empDetails) {
@@ -75,14 +75,13 @@ app.get("/dashboard", verifyToken, async (req, res) => {
   }
 });
 
-
-app.post('/addpole', async (req, res) => {
+app.post("/addpole", async (req, res) => {
   const { lat, long } = req.body;
   try {
     const newPole = await addPole(lat, long);
-    res.status(201).json({ message: 'Pole added successfully', pole: newPole });
+    res.status(201).json({ message: "Pole added successfully", pole: newPole });
   } catch (err) {
-    console.error('Error adding pole:', err);
+    console.error("Error adding pole:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -90,7 +89,14 @@ app.post('/addpole', async (req, res) => {
 app.post("/addtechnician", async (req, res) => {
   const { name, age, email, phone, address, password } = req.body;
   try {
-    const newTechnician = await addTechnician(name, age, email, phone, address, password);
+    const newTechnician = await addTechnician(
+      name,
+      age,
+      email,
+      phone,
+      address,
+      password
+    );
     res.status(201).json({ success: true, technician: newTechnician });
   } catch (err) {
     console.log("Error during adding technician:", err);
@@ -102,7 +108,14 @@ app.post("/addemployee", async (req, res) => {
   const { name, age, email, phone, address, password } = req.body;
   console.log(name, age, email, phone, address, password);
   try {
-    const newEmployee = await addEmployee(name, age, email, phone, address, password);
+    const newEmployee = await addEmployee(
+      name,
+      age,
+      email,
+      phone,
+      address,
+      password
+    );
     console.log(newEmployee);
     res.status(201).json({ success: true, employee: newEmployee });
   } catch (err) {
@@ -152,9 +165,11 @@ app.post("/loradata", async (req, res) => {
 
 app.get("/getcurrentlora", async (req, res) => {
   try {
-    const { pole_id } = req.query; 
+    const { pole_id } = req.query;
     if (!pole_id) {
-      return res.status(400).json({ success: false, message: "pole_id is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "pole_id is required" });
     }
 
     const poledata = await getCurrentInfo(pole_id);
@@ -162,8 +177,8 @@ app.get("/getcurrentlora", async (req, res) => {
       success: true,
       poledata: {
         current: poledata.current,
-        time: poledata.timestamp
-      }
+        time: poledata.time,
+      },
     });
   } catch (err) {
     console.error("Error fetching current info:", err);
