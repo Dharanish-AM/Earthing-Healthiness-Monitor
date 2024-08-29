@@ -3,6 +3,7 @@ const app = express();
 const port = 8000;
 const dotenv = require("dotenv");
 const cors = require("cors");
+const sgMail = require("@sendgrid/mail");
 
 app.use(
   cors({
@@ -11,6 +12,8 @@ app.use(
 );
 
 dotenv.config();
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const {
   Login,
@@ -97,17 +100,37 @@ app.post("/addtechnician", async (req, res) => {
       address,
       password
     );
+
+    console.log("New Technician:", newTechnician);
+
+    const msg = {
+      to: email,
+      from: "dharanish816@gmail.com",
+      subject: "Log In Now - EHS",
+      templateId: "d-25f0d4acebd84e62b66e7210e181e02b",
+      dynamicTemplateData: {
+        role: "Technician",
+        id: newTechnician.technician_id,
+      },
+    };
+    try {
+      await sgMail.send(msg);
+      console.log("Email sent successfully");
+    } catch (emailError) {
+      console.error("Error sending email:", emailError.response.body.errors);
+    }
+
     res.status(201).json({ success: true, technician: newTechnician });
   } catch (err) {
-    console.log("Error during adding technician:", err);
+    console.error("Error during adding technician:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
 app.post("/addemployee", async (req, res) => {
   const { name, age, email, phone, address, password } = req.body;
-  console.log(name, age, email, phone, address, password);
   try {
+    // Add the new employee to the database
     const newEmployee = await addEmployee(
       name,
       age,
@@ -116,8 +139,28 @@ app.post("/addemployee", async (req, res) => {
       address,
       password
     );
-    console.log(newEmployee);
-    res.status(201).json({ success: true, employee: newEmployee });
+
+    console.log("New Employee:", newEmployee);
+
+    const msg = {
+      to: email,
+      from: "dharanish816@gmail.com",
+      subject: "Log In Now - EHS",
+      templateId: "d-25f0d4acebd84e62b66e7210e181e02b",
+      dynamicTemplateData: {
+        role: "Employee",
+        id: newEmployee.employee_id,
+      },
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log("Email sent successfully");
+      res.status(201).json({ success: true, employee: newEmployee });
+    } catch (emailError) {
+      console.error("Error sending email:", emailError.response.body.errors);
+      res.status(500).json({ success: false, message: "Error sending email" });
+    }
   } catch (err) {
     console.error("Error during adding employee:", err);
     res.status(500).json({ success: false, message: "Server error" });
