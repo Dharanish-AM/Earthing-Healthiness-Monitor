@@ -106,7 +106,7 @@ app.post("/addtechnician", async (req, res) => {
     const msg = {
       to: email,
       from: "dharanish816@gmail.com",
-      subject: "Log In Now - EHS",
+      subject: "Log In Now",
       templateId: "d-25f0d4acebd84e62b66e7210e181e02b",
       dynamicTemplateData: {
         role: "Technician",
@@ -130,7 +130,6 @@ app.post("/addtechnician", async (req, res) => {
 app.post("/addemployee", async (req, res) => {
   const { name, age, email, phone, address, password } = req.body;
   try {
-    // Add the new employee to the database
     const newEmployee = await addEmployee(
       name,
       age,
@@ -145,7 +144,7 @@ app.post("/addemployee", async (req, res) => {
     const msg = {
       to: email,
       from: "dharanish816@gmail.com",
-      subject: "Log In Now - EHS",
+      subject: "Log In Now",
       templateId: "d-25f0d4acebd84e62b66e7210e181e02b",
       dynamicTemplateData: {
         role: "Employee",

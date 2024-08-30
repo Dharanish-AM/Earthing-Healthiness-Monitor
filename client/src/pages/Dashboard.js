@@ -29,10 +29,23 @@ function Dashboard() {
         <div className="dashboard-container-content-left">
           <div className="dashboard-container-content-left-top">
             <div className="dashboard-container-content-left-top-left">
-              <div className="dashboard-container-content-left-top-left-top"></div>
-              <div className="dashboard-container-content-left-top-left-bottom"></div>
+              <div className="dashboard-container-content-left-top-left-top">
+
+              </div>
+              <div className="dashboard-container-content-left-top-left-bottom">
+                
+              </div>
             </div>
-            <div className="dashboard-container-content-left-top-right"></div>
+            <div className="dashboard-container-content-left-top-right">
+              <div className="dashboard-container-content-left-top-right-image-container">
+                <div className="dashboard-container-content-left-top-right-image">
+
+                </div>
+              </div>
+              <div className="dashboard-container-content-left-top-right-text">
+
+              </div>
+            </div>
           </div>
           <div className="dashboard-container-content-left-bottom">
             <div className="dashboard-container-content-left-bottom-left">
@@ -57,9 +70,13 @@ function Dashboard() {
         </div>
         <div className="dashboard-container-content-right">
           <div className="dashboard-container-content-right-profile">
-            <div className="dashboard-container-content-right-profile-image"></div>
-            <div className="dashboard-container-content-right-profile-name"></div>
-            <div className="dashboard-container-content-right-profile-details">
+            <div className="dashboard-container-content-right-profile-image">
+
+            </div>
+            <div className="dashboard-container-content-right-profile-name">
+              EMPLOYEE NAME
+            </div>
+            <div className="dashboard-container-content-right-profile-details" style={{backgroundColor:"#cccccc"}}>
               <div>
                 <span>EMP_ID : </span>
                 <span></span>
@@ -83,4 +100,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Dashboard
