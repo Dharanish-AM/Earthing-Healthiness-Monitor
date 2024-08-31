@@ -22,7 +22,7 @@ function AuthPage() {
         console.log("Login successful:", response.data);
         const { token } = response.data;
         localStorage.setItem("token", token);
-        navigate("/dashboard");
+        navigate(`/dashboard`);
       } else {
         console.log("Login failed:", response.data);
         setError("Invalid credentials. Please try again.");
@@ -71,7 +71,7 @@ function AuthPage() {
           </div>
         </div>
         <div className="authpage-container-left-submit">
-          <button onClick={handleSubmit} type="submit">LOGIN</button>
+          <button onClick={handleSubmit} type="submit" style={{cursor:"pointer"}}>LOGIN</button>
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </div>

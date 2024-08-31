@@ -46,13 +46,13 @@ const poleSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Active", "Inactive", "Under Maintenance"],
+    enum: ["Active", "Inactive", "Under Maintenance","Error"],
     default: "Active",
   },
   last_maintenance: { type: Date, default: null },
   total: { type: Number, default: 0, min: 0 },
   count: { type: Number, default: 0, min: 0 },
-  daily_average: [
+  day_average: [
     {
       time: {
         type: Date,
@@ -186,8 +186,7 @@ async function Login(employee_id, password) {
       console.log("User Valid");
       const token = jwt.sign(
         { employee_id: employee.employee_id },
-        process.env.JWT_KEY,
-        { expiresIn: "1h" }
+        process.env.JWT_KEY
       );
       console.log("JWT Token:", token);
       return token;
@@ -385,7 +384,7 @@ async function fetchAllEmployeesDetails() {
 
 async function fetchPolesStatus() {
   try {
-    const poles = await Pole.find({}, "pole_id status");
+    const poles = await Pole.find({}, "pole_id status day_average");
 
     if (!poles || poles.length === 0) {
       console.log("No poles found");

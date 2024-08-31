@@ -59,7 +59,7 @@ app.get("/dashboard", verifyToken, async (req, res) => {
   try {
     const polesStatusPromise = fetchPolesStatus();
     const activeTechniciansPromise = fetchActiveTechnicians();
-    const empDetailsPromise = fetchEmployeeDetails(req.user.emp_id);
+    const empDetailsPromise = fetchEmployeeDetails(req.user.employee_id);
 
     const [polesStatus, activeTechnicians, empDetails] = await Promise.all([
       polesStatusPromise,
