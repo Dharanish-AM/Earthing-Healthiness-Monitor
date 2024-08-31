@@ -34,6 +34,10 @@ const poleSchema = new mongoose.Schema({
     unique: true,
     index: true,
   },
+  location: {
+    type: String,
+    required: true,
+  },
   coordinates: {
     type: [String],
     validate: {
@@ -46,7 +50,7 @@ const poleSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Active", "Inactive", "Under Maintenance","Error"],
+    enum: ["Active", "Inactive", "Under Maintenance", "Error"],
     default: "Active",
   },
   last_maintenance: { type: Date, default: null },
@@ -258,12 +262,13 @@ async function addTechnician(name, age, email, phone, address, password) {
   }
 }
 
-async function addPole(lat, long) {
+async function addPole(lat, long, location) {
   try {
     const pole_id = await getNextSequenceValue("pole_id", "P");
     const pole = new Pole({
       pole_id,
       coordinates: [lat, long],
+      location,
     });
     const result = await pole.save();
     console.log("Pole added:", result);
@@ -296,19 +301,18 @@ async function fetchPoleCords() {
   }
 }
 
-async function getPoleDetails(pole_id) {
+async function getPolesDetails() {
   try {
-    const pole = await Pole.findOne({ pole_id });
-
-    if (!pole) {
-      console.log("Pole not found");
+    const poles = await Pole.find({}, "pole_id coordinates status location");
+    if (!poles.length) {
+      console.log("Poles not found");
       return null;
     }
 
-    console.log("Pole Details:", pole);
-    return pole;
+    console.log("Poles Details:", poles);
+    return poles;
   } catch (err) {
-    console.error("Error fetching pole details:", err);
+    console.error("Error fetching poles details:", err);
   }
 }
 
@@ -472,6 +476,30 @@ async function getCurrentInfo(pole_id) {
   }
 }
 
+async function getAllPoleDetails() {
+  try {
+    const poleDetails = await Pole.find();
+    console.log("Poles Details:", poleDetails);
+    return poleDetails;
+  } catch (err) {
+    console.error("Error in getAllPoleDetails:", err);
+    throw err;
+  }
+}
+
+async function getPoleDetails(poleid) {
+  try {
+    const poleDetails = await Pole.findOne({ pole_id: poleid });
+    if (!poleDetails) {
+      throw new Error("Pole not found");
+    }
+    return poleDetails;
+  } catch (err) {
+    console.error("Error in getPoleDetails:", err);
+    throw err;
+  }
+}
+
 mongoose
   .connect(process.env.DB_URI)
   .then(() => {
@@ -494,7 +522,7 @@ module.exports = {
   addPole,
   fetchPoleID,
   fetchPoleCords,
-  getPoleDetails,
+  getPolesDetails,
   assignTechnician,
   fetchHistory,
   getAllTechnicians,
@@ -506,4 +534,6 @@ module.exports = {
   setCurrentInfo,
   getCurrentInfo,
   fetchAllEmployees,
+  getAllPoleDetails,
+  getPoleDetails,
 };

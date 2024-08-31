@@ -22,7 +22,7 @@ const {
   addPole,
   fetchPoleID,
   fetchPoleCords,
-  getPoleDetails,
+  getPolesDetails,
   assignTechnician,
   fetchHistory,
   getAllTechnicians,
@@ -33,6 +33,8 @@ const {
   fetchAllEmployeesDetails,
   setCurrentInfo,
   getCurrentInfo,
+  getAllPoleDetails,
+  getPoleDetails,
 } = require("./database/db");
 
 const { verifyToken } = require("./middleware/Token");
@@ -79,9 +81,9 @@ app.get("/dashboard", verifyToken, async (req, res) => {
 });
 
 app.post("/addpole", async (req, res) => {
-  const { lat, long } = req.body;
+  const { lat, long, location } = req.body;
   try {
-    const newPole = await addPole(lat, long);
+    const newPole = await addPole(lat, long, location);
     res.status(201).json({ message: "Pole added successfully", pole: newPole });
   } catch (err) {
     console.error("Error adding pole:", err);
@@ -225,6 +227,49 @@ app.get("/getcurrentlora", async (req, res) => {
   } catch (err) {
     console.error("Error fetching current info:", err);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.get("/getpolesdetailsmap", async (req, res) => {
+  const response = await getPolesDetails();
+
+  if (!response) {
+    return res.status(404).send("Poles not found");
+  }
+  res.status(200).json({
+    success: true,
+    polesdata: response,
+  });
+});
+
+app.get("/getAllPoleDetails", async (req, res) => {
+  try {
+    const poleDetails = await getAllPoleDetails();
+    res.status(200).json({
+      success: true,
+      data: poleDetails,
+    });
+  } catch (error) {
+    console.error("Error handling /getAllPoleDetails request:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+app.get("/getpoledeatils", async (req, res) => {
+  const { poleid } = req.query;
+
+  if (!poleid) {
+    return res.status(400).json({ error: "Pole ID is required" });
+  }
+
+  try {
+    const poleDetails = await getPoleDetails(poleid);
+    res.status(200).json(poleDetails);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
