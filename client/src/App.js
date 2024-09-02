@@ -16,11 +16,10 @@ function App() {
       <Route path="/login" element={<AuthPage />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/details" element={<Details />} />
+      <Route path="/dashboard/poles" element={<Details />} />
       <Route path="/map" element={<Map />} />
       <Route path="/history" element={<History />} />
-      <Route path="home/manage-technicians" element={<Technician />} />
-      <Route path="home/manage-sensors" element={<ManageSensors />} />
+      <Route path="/dashboard/technicians" element={<Technician />} />
     </Routes>
   );
 }

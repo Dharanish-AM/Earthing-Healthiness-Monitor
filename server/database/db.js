@@ -433,9 +433,7 @@ async function setCurrentInfo(pole_id, current) {
     }
 
     if (typeof current !== "number" || current < 0) {
-      console.log(
-        `Invalid current value: ${current}. Must be a non-negative number.`
-      );
+      console.log(`Invalid current value: ${current}. Must be a non-negative number.`);
       return;
     }
 
@@ -445,7 +443,12 @@ async function setCurrentInfo(pole_id, current) {
 
     if (pole.count >= 4) {
       const avg = pole.total / pole.count;
-      pole.daily_average.push({ time: dateTime, current: avg });
+
+      if (!pole.day_average) {
+        pole.day_average = [];
+      }
+
+      pole.day_average.push({ time: dateTime, current: avg });
       pole.total = 0;
       pole.count = 0;
     }
@@ -456,6 +459,7 @@ async function setCurrentInfo(pole_id, current) {
     console.error("Error while setting current information:", err);
   }
 }
+
 
 async function getCurrentInfo(pole_id) {
   try {
@@ -500,6 +504,35 @@ async function getPoleDetails(poleid) {
   }
 }
 
+async function getHistoryInfo() {
+  try {
+    const errorHistory = await History.find();
+    return errorHistory;
+  } catch (error) {
+    console.error("Error while fetching history with status 'Error':", error);
+    throw error;
+  }
+}
+
+
+async function setHistoryInfo(pole_id, status, technician_id, severity, description) {
+  try {
+    const historyEntry = new History({
+      pole_id,
+      status,
+      technician_id,
+      severity,
+      description
+    });
+    await historyEntry.save();
+    console.log("History entry saved:", historyEntry);
+  } catch (err) {
+    console.error("Error saving history entry:", err);
+    throw err;
+  }
+}
+
+
 mongoose
   .connect(process.env.DB_URI)
   .then(() => {
@@ -536,4 +569,6 @@ module.exports = {
   fetchAllEmployees,
   getAllPoleDetails,
   getPoleDetails,
+  getHistoryInfo,
+  setHistoryInfo,
 };

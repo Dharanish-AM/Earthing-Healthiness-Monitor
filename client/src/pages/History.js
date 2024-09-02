@@ -6,25 +6,24 @@ import axios from "axios";
 function History() {
   const [polesDetails, setPolesDetails] = useState([]);
 
-  useEffect(() => {
-    const fetchPolesDetails = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/getAllPoleDetails"
-        );
-        if (response.data && Array.isArray(response.data.data)) {
-          console.log(response.data.data);
-          setPolesDetails(response.data.data);
-        } else {
-          console.warn("Unexpected response data:", response.data);
+    useEffect(() => {
+      const fetchPolesDetails = async () => {
+        try {
+          const response = await axios.get("http://localhost:8000/gethistoryinfo");
+          if (response.data && Array.isArray(response.data.data)) {
+            setPolesDetails(response.data.data);
+            console.log(response.data)
+          } else {
+            console.warn("Unexpected response data:", response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching pole details:", error);
         }
-      } catch (error) {
-        console.error("Error fetching all pole details:", error);
-      }
-    };
-
-    fetchPolesDetails();
-  }, []);
+      };
+  
+      fetchPolesDetails();
+    }, []);
+  
 
   return (
     <div className="history-page-container">
@@ -34,38 +33,34 @@ function History() {
       <div className="history-page-content">
         <h1>History</h1>
         {polesDetails.length > 0 ? (
-          <ul>
-            {polesDetails.map((poledetails) => (
-              <li key={poledetails.pole_id}>
-                <h2>Pole ID: {poledetails.pole_id}</h2>
-                <p>Status: {poledetails.status}</p>
-                <p>Location: {poledetails.location}</p>
-                <p>Coordinates:</p>
-                <ul>
-                  <li>Latitude: {poledetails.coordinates[0]}</li>
-                  <li>Longitude: {poledetails.coordinates[1]}</li>
-                </ul>
-                <p>Last Maintenance: {poledetails.last_maintenance || "N/A"}</p>
-                <p>Day Average:</p>
-                <ul>
-                  {poledetails.day_average &&
-                  poledetails.day_average.length > 0 ? (
-                    poledetails.day_average.map((day, index) => (
-                      <li key={index}>
-                        {typeof day === "object"
-                          ? `Time: ${day.time}, Current: ${day.current}, ID: ${day._id}`
-                          : `Day ${index + 1}: ${day}`}
-                      </li>
-                    ))
-                  ) : (
-                    <li>No data available</li>
-                  )}
-                </ul>
-              </li>
-            ))}
-          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>Pole ID</th>
+                <th>Status</th>
+                <th>Date & Time</th>
+                <th>Technician ID</th>
+                <th>Severity</th>
+                <th>Repaired On</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {polesDetails.map((historyDetail) => (
+                <tr key={historyDetail._id}>
+                  <td>{historyDetail.pole_id}</td>
+                  <td>{historyDetail.status}</td>
+                  <td>{new Date(historyDetail.date_time).toLocaleString()}</td>
+                  <td>{historyDetail.technician_id}</td>
+                  <td>{historyDetail.severity || "N/A"}</td>
+                  <td>{historyDetail.repaired_on ? new Date(historyDetail.repaired_on).toLocaleString() : "N/A"}</td>
+                  <td>{historyDetail.description || "No description"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
-          <p>No pole details available.</p>
+          <p>No poles with errors available.</p>
         )}
       </div>
     </div>
