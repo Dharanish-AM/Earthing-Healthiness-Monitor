@@ -206,7 +206,7 @@ app.post("/loradata", async (req, res) => {
 
     await setCurrentInfo(data.id, current);
 
-    if (current > 25) {
+    if (current > 1) {
       const poleDetails = await getPoleDetails(data.id);
       if (poleDetails) {
         const status = "Pending";

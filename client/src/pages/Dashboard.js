@@ -107,7 +107,7 @@ function Dashboard() {
     setHourlyTimeDateCurrent(timeData);
   }
 
-  const HighAverageCurrent = averageLeakageCurrent > 25;
+  const HighAverageCurrent = averageLeakageCurrent > 1;
 
   const chartData = {
     labels: hourlyTimeDateCurrent.map((data) => data.time),
