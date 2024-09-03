@@ -433,13 +433,19 @@ async function setCurrentInfo(pole_id, current) {
     }
 
     if (typeof current !== "number" || current < 0) {
-      console.log(`Invalid current value: ${current}. Must be a non-negative number.`);
+      console.log(
+        `Invalid current value: ${current}. Must be a non-negative number.`
+      );
       return;
     }
 
     const dateTime = new Date();
     pole.total += current;
     pole.count++;
+
+    if (current > 25) {
+      pole.status = "Error";
+    }
 
     if (pole.count >= 4) {
       const avg = pole.total / pole.count;
@@ -459,7 +465,6 @@ async function setCurrentInfo(pole_id, current) {
     console.error("Error while setting current information:", err);
   }
 }
-
 
 async function getCurrentInfo(pole_id) {
   try {
@@ -504,25 +509,29 @@ async function getPoleDetails(poleid) {
   }
 }
 
-async function getHistoryInfo() {
+const getHistoryInfo = async () => {
   try {
-    const errorHistory = await History.find();
-    return errorHistory;
-  } catch (error) {
-    console.error("Error while fetching history with status 'Error':", error);
-    throw error;
+    const historyInfo = await History.find().sort({ date_time: -1 }).exec();
+    return historyInfo;
+  } catch (err) {
+    throw new Error(`Failed to fetch history info: ${err.message}`);
   }
-}
+};
 
-
-async function setHistoryInfo(pole_id, status, technician_id, severity, description) {
+async function setHistoryInfo(
+  pole_id,
+  status,
+  technician_id,
+  severity,
+  description
+) {
   try {
     const historyEntry = new History({
       pole_id,
       status,
       technician_id,
       severity,
-      description
+      description,
     });
     await historyEntry.save();
     console.log("History entry saved:", historyEntry);
@@ -532,6 +541,49 @@ async function setHistoryInfo(pole_id, status, technician_id, severity, descript
   }
 }
 
+async function getActiveTechnicians() {
+  try {
+    const activeTechnicians = await Technician.find({ active: true });
+    return activeTechnicians;
+  } catch (err) {
+    console.error("Error fetching active technicians:", err);
+    throw new Error("Failed to fetch active technicians");
+  }
+}
+
+const updatePoleTechnician = async (
+  poleId,
+  technicianId,
+  status = "In Progress",
+  description = null
+) => {
+  try {
+    await History.findOneAndUpdate(
+      { pole_id: poleId },
+      {
+        technician_id: technicianId,
+        status,
+        description,
+      },
+      { new: true }
+    );
+  } catch (err) {
+    throw new Error(`Failed to update history entry: ${err.message}`);
+  }
+};
+
+const findTechnicianById = async (id) => {
+  try {
+    const technician = await Technician.findOne({ technician_id: id });
+    console.log(technician);
+    if (!technician) {
+      throw new Error("Technician not found");
+    }
+    return technician;
+  } catch (error) {
+    throw new Error(`Failed to fetch technician details: ${error.message}`);
+  }
+};
 
 mongoose
   .connect(process.env.DB_URI)
@@ -570,5 +622,8 @@ module.exports = {
   getAllPoleDetails,
   getPoleDetails,
   getHistoryInfo,
+  getActiveTechnicians,
   setHistoryInfo,
+  updatePoleTechnician,
+  findTechnicianById,
 };

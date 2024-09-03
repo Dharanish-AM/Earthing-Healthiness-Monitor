@@ -4,8 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Details from "./pages/Details.js";
 import Map from "./pages/Map";
 import History from "./pages/History";
-import Technician from "./components/Technician";
-import ManageSensors from "./components/ManageSensors";
+import ManageTechnicians from "./components/ManageTechnicians";
 import AuthPage from "./pages/AuthPage.js";
 import Admin from "./pages/Admin.js";
 
@@ -19,7 +18,7 @@ function App() {
       <Route path="/dashboard/poles" element={<Details />} />
       <Route path="/map" element={<Map />} />
       <Route path="/history" element={<History />} />
-      <Route path="/dashboard/technicians" element={<Technician />} />
+      <Route path="/dashboard/technicians" element={<ManageTechnicians />} />
     </Routes>
   );
 }

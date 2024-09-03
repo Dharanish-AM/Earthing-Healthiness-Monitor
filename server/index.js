@@ -8,7 +8,7 @@ const sgMail = require("@sendgrid/mail");
 app.use(
   cors({
     origin: "*",
-  }) 
+  })
 );
 
 dotenv.config();
@@ -37,6 +37,9 @@ const {
   getPoleDetails,
   getHistoryInfo,
   setHistoryInfo,
+  getActiveTechnicians,
+  updatePoleTechnician,
+  findTechnicianById,
 } = require("./database/db");
 
 const { verifyToken } = require("./middleware/Token");
@@ -200,20 +203,26 @@ app.post("/loradata", async (req, res) => {
       console.log("Invalid current value:", data.ct);
       return res.status(400).json({ message: "Invalid current value" });
     }
-      
+
     await setCurrentInfo(data.id, current);
- 
+
     if (current > 25) {
       const poleDetails = await getPoleDetails(data.id);
       if (poleDetails) {
         const status = "Pending";
         const technician_id = "not-assigned";
         const severity = "High";
-        const description="null";
-        //const description = "High current detected"; 
+        const description = "null";
+        //const description = "High current detected";
 
-        await setHistoryInfo(poleDetails.pole_id, status, technician_id, severity, description);
-      }
+        await setHistoryInfo(
+          poleDetails.pole_id,
+          status,
+          technician_id,
+          severity,
+          description
+        );
+      } 
     }
 
     res.status(200).json({ message: "Data Received Successfully" });
@@ -222,7 +231,6 @@ app.post("/loradata", async (req, res) => {
     res.status(500).json({ message: "Error Processing Data" });
   }
 });
-
 
 app.get("/getcurrentlora", async (req, res) => {
   try {
@@ -290,20 +298,53 @@ app.get("/getpoledeatils", async (req, res) => {
   }
 });
 
-app.get('/gethistoryinfo', async (req, res) => {
+app.get("/gethistoryinfo", async (req, res) => {
   try {
     const historyInfo = await getHistoryInfo();
-    console.log(historyInfo)
+    console.log(historyInfo);
     res.status(200).json({
       success: true,
-      data: historyInfo
+      data: historyInfo,
     });
   } catch (error) {
     console.error("Error fetching history info:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch history info."
+      message: "Failed to fetch history info.",
     });
+  }
+});
+
+app.get("/gettechniciandetails/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const technician = await findTechnicianById(id);
+    res.status(200).json({ success: true, data: technician });
+  } catch (error) {
+    console.error("Error fetching technician details:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post("/assigntechnician", async (req, res) => {
+  const { poleId, technicianId, status, description } = req.body;
+  try {
+    await updatePoleTechnician(poleId, technicianId, status, description);
+    res.status(200).json({
+      message: "Technician assigned and history updated successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/getactivetechnicians", async (req, res) => {
+  try {
+    const activeTechnicians = await getActiveTechnicians();
+    res.status(200).json({ technicians: activeTechnicians });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -34,6 +34,7 @@ function Dashboard() {
   const [activeTechnicians, setActiveTechnicians] = useState([]);
   const [averageLeakageCurrent, setAverageLeakageCurrent] = useState(0);
   const [hourlyTimeDateCurrent, setHourlyTimeDateCurrent] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false); // New state for modal visibility
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,14 +94,15 @@ function Dashboard() {
             timeData.push({
               time: timedatesplit[1].trim(),
               date: timedatesplit[0].trim(),
-              current: entry.current
+              current: entry.current,
             });
           }
         });
       }
     });
 
-    const average = count > 0 ? (totalLeakageCurrent / count).toFixed(2) : "0.00";
+    const average =
+      count > 0 ? (totalLeakageCurrent / count).toFixed(2) : "0.00";
     setAverageLeakageCurrent(average);
     setHourlyTimeDateCurrent(timeData);
   }
@@ -128,27 +130,37 @@ function Dashboard() {
         title: {
           display: true,
           text: "Time",
-          color: "black"  
+          color: "black",
         },
       },
       y: {
         title: {
           display: true,
           text: "Average Leakage Current (mA)",
-          color: "black"  
+          color: "black",
         },
       },
     },
   };
-  
 
   const downloadReport = () => {
     const ws = XLSX.utils.json_to_sheet(
-      hourlyTimeDateCurrent.map(({ time, current }) => ({ Time: time, Current: current }))
+      hourlyTimeDateCurrent.map(({ time, current }) => ({
+        Time: time,
+        Current: current,
+      }))
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Average Leakage Current");
     XLSX.writeFile(wb, "Average_Leakage_Current_Report.xlsx");
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -166,8 +178,9 @@ function Dashboard() {
               <div
                 className="dashboard-container-content-top-overview-error-image"
                 style={{
-                  backgroundImage: `url(${errorPoles.length === 0 ? correct : warning
-                    })`,
+                  backgroundImage: `url(${
+                    errorPoles.length === 0 ? correct : warning
+                  })`,
                 }}
               ></div>
               <div className="dashboard-container-content-top-overview-error-text">
@@ -180,10 +193,7 @@ function Dashboard() {
                 ACTIVE TECHNICIAN
               </div>
               <div className="dashboard-container-content-top-overview-technician-count">
-                <div>
-                  {activeTechnicians.length}
-                </div>
-
+                <div>{activeTechnicians.length}</div>
               </div>
               <div className="dashboard-container-content-top-overview-technician-text">
                 NO OF TECHNICIANS
@@ -195,20 +205,34 @@ function Dashboard() {
               </div>
               <div className="dashboard-container-content-top-overview-options-division">
                 <div className="dashboard-container-content-top-overview-options-division-b1">
-                  <button onClick={() => {
-                    navigate("/dashboard/technicians")
-                  }}>MANAGE TECHNICIAN</button>
+                  <button
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate("/dashboard/technicians");
+                    }}
+                  >
+                    MANAGE TECHNICIAN
+                  </button>
                 </div>
                 <div className="dashboard-container-content-top-overview-options-division-b2">
-                  <button onClick={() => {
-                    navigate("/dashboard/poles")
-                  }}>MANAGE POLES</button>
+                  <button
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      navigate("/dashboard/poles");
+                    }}
+                  >
+                    MANAGE POLES
+                  </button>
                 </div>
                 <div className="dashboard-container-content-top-overview-options-division-b3">
-                  <button onClick={downloadReport}>VIEW REPORT</button>
+                  <button
+                    style={{ cursor: "pointer" }}
+                    onClick={downloadReport}
+                  >
+                    VIEW REPORT
+                  </button>
                 </div>
               </div>
-
             </div>
           </div>
           <div className="dashboard-container-content-top-profile">
@@ -217,7 +241,7 @@ function Dashboard() {
             </div>
             <div className="dashboard-container-content-top-profile-details">
               <div className="dashboard-container-content-top-profile-details-id">
-                <b>EMP_ID</b> : {empDetails.employee_id}
+                <b>ID</b> : {empDetails.employee_id}
               </div>
               <div className="dashboard-container-content-top-profile-details-email">
                 <b>EMAIL</b> : {empDetails.email}
@@ -226,9 +250,13 @@ function Dashboard() {
                 <b>CONTACT</b> : {empDetails.phone}
               </div>
             </div>
-            <div className="dashboard-container-content-top-profile-logout" style={{cursor:"pointer"}} onClick={()=>{
-              navigate("/login")
-            }}>
+            <div
+              className="dashboard-container-content-top-profile-logout"
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+                navigate("/login");
+              }}
+            >
               LOGOUT
             </div>
           </div>
@@ -236,43 +264,30 @@ function Dashboard() {
         <div className="dashboard-container-content-bottom">
           <div className="dashboard-container-content-bottom-container">
             <div className="dashboard-container-content-bottom-container-stats">
-
-
               <div className="dashboard-container-content-bottom-container-stats-poles">
                 <div className="dashboard-container-content-bottom-container-stats-poles-div1">
                   <div className="dashboard-container-content-bottom-container-stats-poles-total">
-                    <span>
-                      TOTAL POLES 
-                    </span>
+                    <span>TOTAL POLES</span>
                     <span>
                       <b>{polesStatus.length}</b>
                     </span>
-
                   </div>
                   <div className="dashboard-container-content-bottom-container-stats-poles-active">
-                    <span>
-                      ACTIVE POLES 
-                    </span>
+                    <span>ACTIVE POLES</span>
                     <span>
                       <b>{activePoles.length}</b>
                     </span>
-
                   </div>
                 </div>
                 <div className="dashboard-container-content-bottom-container-stats-poles-div2">
                   <div className="dashboard-container-content-bottom-container-stats-poles-inactive">
-                    <span>
-                      INACTIVE POLES 
-                    </span>
+                    <span>INACTIVE POLES</span>
                     <span>
                       <b>{inactivePoles.length}</b>
                     </span>
-
                   </div>
                   <div className="dashboard-container-content-bottom-container-stats-poles-maintenance">
-                    <span>
-                      UNDER MAINTENANCE 
-                    </span>
+                    <span>UNDER MAINTENANCE</span>
                     <span>
                       <b>{maintenancePoles.length}</b>
                     </span>
@@ -284,21 +299,57 @@ function Dashboard() {
                   AVERAGE LEAKAGE CURRENT
                 </div>
                 <div className="dashboard-container-content-bottom-container-stats-current-value">
-                  <b>{averageLeakageCurrent}</b>mA
+                  <b
+                    style={
+                      averageLeakageCurrent > 25 ? { color: "#D71313" } : null
+                    }
+                  >
+                    {averageLeakageCurrent}
+                  </b>
+                  <span
+                    style={
+                      averageLeakageCurrent > 25 ? { color: "#D71313" } : null
+                    }
+                  >
+                    mA
+                  </span>
                 </div>
               </div>
             </div>
             <div className="dashboard-container-content-bottom-container-analytics">
               <div className="dashboard-container-content-bottom-container-analytics-heading">
-                AVERAGE LEAKAGE CURRENT ANALYTICS
+                <div>AVERAGE LEAKAGE CURRENT ANALYTICS</div>
+                <div>
+                  <button onClick={openModal}>View Detail</button>
+                </div>
               </div>
               <div className="dashboard-container-content-bottom-container-analytics-graph">
-                <Line className="Chart" data={chartData} options={chartOptions} />
+                <Line
+                  className="Chart"
+                  data={chartData}
+                  options={chartOptions}
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Average Leakage Current Analytics</h2>
+              <button onClick={closeModal} className="modal-close">
+                X
+              </button>
+            </div>
+            <div className="modal-body">
+              <Line data={chartData} options={chartOptions} />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
