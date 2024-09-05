@@ -443,7 +443,7 @@ async function setCurrentInfo(pole_id, current) {
     pole.total += current;
     pole.count++;
 
-    if (current > 25) {
+    if (current > 1) {
       pole.status = "Error";
     }
 
@@ -566,6 +566,12 @@ const updatePoleTechnician = async (
         description,
       },
       { new: true }
+    );
+    await Pole.updateOne(
+      { pole_id: poleId },
+      {
+        status: "Active",
+      }
     );
   } catch (err) {
     throw new Error(`Failed to update history entry: ${err.message}`);

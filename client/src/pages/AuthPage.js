@@ -2,6 +2,7 @@ import "../App.css";
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ilus from "../assets/illus.jpg";
 
 function AuthPage() {
   const [empid, setEmpID] = useState("");
@@ -39,9 +40,7 @@ function AuthPage() {
         <div className="authpage-container-left-heading">
           EARTHING HEALTHINESS MONITORING
         </div>
-        <div className="authpage-container-left-title">
-          LOGIN PORTAL
-        </div>
+        <div className="authpage-container-left-title">LOGIN PORTAL</div>
         <div className="authpage-container-left-userid">
           <div className="authpage-container-left-userid-title">
             EMPLOYEE ID
@@ -57,9 +56,7 @@ function AuthPage() {
           </div>
         </div>
         <div className="authpage-container-left-password">
-          <div className="authpage-container-left-password-title">
-            PASSWORD
-          </div>
+          <div className="authpage-container-left-password-title">PASSWORD</div>
           <div className="authpage-container-left-password-field">
             <input
               type="password"
@@ -71,12 +68,22 @@ function AuthPage() {
           </div>
         </div>
         <div className="authpage-container-left-submit">
-          <button onClick={handleSubmit} type="submit" style={{cursor:"pointer"}}>LOGIN</button>
+          <button
+            onClick={handleSubmit}
+            type="submit"
+            style={{ cursor: "pointer" }}
+          >
+            LOGIN
+          </button>
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
       </div>
       <div className="authpage-container-right">
-
+      <div
+          className="authpage-container-right-image"
+          style={{ backgroundImage: `url(${ilus})` }}
+        >
+      </div>
       </div>
     </section>
   );

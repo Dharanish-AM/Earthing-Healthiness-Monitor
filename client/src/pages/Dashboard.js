@@ -34,7 +34,7 @@ function Dashboard() {
   const [activeTechnicians, setActiveTechnicians] = useState([]);
   const [averageLeakageCurrent, setAverageLeakageCurrent] = useState(0);
   const [hourlyTimeDateCurrent, setHourlyTimeDateCurrent] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false); // New state for modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,7 +63,8 @@ function Dashboard() {
   }, [navigate]);
 
   const errorPoles = polesStatus.filter(
-    (poleStatus) => poleStatus.status === "Error"
+    (poleStatus) =>
+      poleStatus.status === "Error" && poleStatus.status !== "In Progress"
   );
   const activePoles = polesStatus.filter(
     (poleStatus) => poleStatus.status === "Active"

@@ -33,7 +33,11 @@ function History() {
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleAssignTechnician = (poleId) => {
+  const handleAssignTechnician = (poleId, technicianId) => {
+    if (technicianId && technicianId !== "not-assigned") {
+      alert("This pole already has a technician assigned.");
+      return;
+    }
     setSelectedPoleId(poleId);
     setShowPopup(true);
   };
@@ -47,6 +51,7 @@ function History() {
       const response = await axios.get(
         `http://localhost:8000/gettechniciandetails/${technicianId}`
       );
+      console.log('Technician Details Response:', response.data);
       setTechnicianDetails(response.data.data);
       setShowTechnicianDetails(true);
     } catch (error) {
@@ -142,24 +147,29 @@ function History() {
                         <button
                           className="assign-technician-button"
                           onClick={() =>
-                            handleAssignTechnician(historyDetail.pole_id)
+                            handleAssignTechnician(
+                              historyDetail.pole_id,
+                              historyDetail.technician_id
+                            )
                           }
                         >
                           Assign Technician
                         </button>
                       )}
-                    {historyDetail.status === "In Progress" && (
-                      <button
-                        className="in-progress-button"
-                        onClick={() =>
-                          handleShowTechnicianDetails(
-                            historyDetail.technician_id
-                          )
-                        }
-                      >
-                        Show Technician Details
-                      </button>
-                    )}
+                    {historyDetail.status === "In Progress" &&
+                      historyDetail.technician_id && (
+                        <button
+                          className="in-progress-button"
+                          onClick={() => {
+                            console.log("Technician ID:", historyDetail.technician_id);
+                            handleShowTechnicianDetails(
+                              historyDetail.technician_id
+                            );
+                          }}
+                        >
+                          Show Technician Details
+                        </button>
+                      )}
                     {historyDetail.status === "Fixed" && (
                       <button
                         className="view-details-button"

@@ -198,12 +198,14 @@ app.post("/loradata", async (req, res) => {
     const data = req.body.data;
     console.log("Received data:", data);
 
-    const current = Number(data.ct);
+    var current = Number(data.ct);
     if (isNaN(current)) {
       console.log("Invalid current value:", data.ct);
       return res.status(400).json({ message: "Invalid current value" });
     }
-
+    if(current<=0){
+      current=0;
+    }
     await setCurrentInfo(data.id, current);
 
     if (current > 1) {
@@ -305,7 +307,7 @@ app.get("/gethistoryinfo", async (req, res) => {
     res.status(200).json({
       success: true,
       data: historyInfo,
-    });
+    }); 
   } catch (error) {
     console.error("Error fetching history info:", error);
     res.status(500).json({
@@ -317,7 +319,6 @@ app.get("/gethistoryinfo", async (req, res) => {
 
 app.get("/gettechniciandetails/:id", async (req, res) => {
   const { id } = req.params;
-
   try {
     const technician = await findTechnicianById(id);
     res.status(200).json({ success: true, data: technician });
