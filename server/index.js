@@ -40,6 +40,7 @@ const {
   getActiveTechnicians,
   updatePoleTechnician,
   findTechnicianById,
+  findTechnician,
 } = require("./database/db");
 
 const { verifyToken } = require("./middleware/Token");
@@ -203,8 +204,8 @@ app.post("/loradata", async (req, res) => {
       console.log("Invalid current value:", data.ct);
       return res.status(400).json({ message: "Invalid current value" });
     }
-    if(current<=0){
-      current=0;
+    if (current <= 0) {
+      current = 0;
     }
     await setCurrentInfo(data.id, current);
 
@@ -224,7 +225,7 @@ app.post("/loradata", async (req, res) => {
           severity,
           description
         );
-      } 
+      }
     }
 
     res.status(200).json({ message: "Data Received Successfully" });
@@ -307,7 +308,7 @@ app.get("/gethistoryinfo", async (req, res) => {
     res.status(200).json({
       success: true,
       data: historyInfo,
-    }); 
+    });
   } catch (error) {
     console.error("Error fetching history info:", error);
     res.status(500).json({
@@ -346,6 +347,23 @@ app.get("/getactivetechnicians", async (req, res) => {
     res.status(200).json({ technicians: activeTechnicians });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+//App
+app.post("/technicianlogin", async (req, res) => {
+  const { tid, tpassword } = req.body;
+
+  try {
+    const technician = await findTechnician(tid, tpassword);
+
+    if (!technician) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    return res.status(200).json({ message: "Login successful", technician });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error });
   }
 });
 

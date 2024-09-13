@@ -591,6 +591,23 @@ const findTechnicianById = async (id) => {
   }
 };
 
+async function findTechnician(id, password) {
+  try {
+    const technician = await Technician.findOne({ technician_id: id });
+
+    if (!technician) return null; // No technician found
+
+    const isMatch = await bcrypt.compare(password, technician.password);
+
+    if (!isMatch) return null; // Password doesn't match
+
+    return technician; // Login successful
+  } catch (error) {
+    console.error("Error during login:", error);
+    return null; 
+  }
+}
+
 mongoose
   .connect(process.env.DB_URI)
   .then(() => {
@@ -632,4 +649,5 @@ module.exports = {
   setHistoryInfo,
   updatePoleTechnician,
   findTechnicianById,
+  findTechnician,
 };
