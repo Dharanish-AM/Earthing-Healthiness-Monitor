@@ -69,6 +69,10 @@ const poleSchema = new mongoose.Schema({
       },
     },
   ],
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const employeeSchema = new mongoose.Schema({
@@ -155,27 +159,37 @@ const technicianSchema = new mongoose.Schema({
   },
 });
 
-const historySchema = new mongoose.Schema(
-  {
-    pole_id: { type: String, required: true, index: true },
-    date_time: { type: Date, required: true, default: Date.now },
-    status: {
-      type: String,
-      required: true,
-      enum: ["Fixed", "Pending", "In Progress"],
-    },
-    technician_id: { type: String, required: true, index: true },
-    severity: { type: String, enum: ["Low", "Medium", "High"] },
-    repaired_on: { type: Date, default: null },
-    description: { type: String, trim: true },
+const historySchema = new mongoose.Schema({
+  pole_id: { type: String, required: true, index: true },
+  date_time: { type: Date, required: true, default: Date.now },
+  status: {
+    type: String,
+    required: true,
+    enum: ["Fixed", "Pending", "In Progress"],
   },
-  { timestamps: true }
-);
+  technician_id: { type: String, required: true, index: true },
+  severity: { type: String, enum: ["Low", "Medium", "High"] },
+  repaired_on: { type: Date, default: null },
+  description: { type: String, trim: true },
+});
+
+const TasksSchema = new mongoose.Schema({
+  pole_id: { type: String, required: true },
+  technician_id: { type: String, required: true },
+  status: {
+    type: String,
+    required: true,
+    enum: ["Fixed", "Pending", "In Progress"],
+  },
+  timestamp: { type: Date, default: null },
+  severity: { type: String, default: null },
+});
 
 const Pole = mongoose.model("Pole", poleSchema);
 const Employee = mongoose.model("Employee", employeeSchema);
 const Technician = mongoose.model("Technician", technicianSchema);
 const History = mongoose.model("History", historySchema);
+const Tasks = mongoose.model("Tasks", TasksSchema);
 
 async function Login(employee_id, password) {
   try {
@@ -558,7 +572,7 @@ const updatePoleTechnician = async (
   description = null
 ) => {
   try {
-    await History.findOneAndUpdate(
+    const updatedHistory = await History.findOneAndUpdate(
       { pole_id: poleId },
       {
         technician_id: technicianId,
@@ -567,14 +581,31 @@ const updatePoleTechnician = async (
       },
       { new: true }
     );
+
+    if (!updatedHistory) {
+      throw new Error("Failed to update history. Record not found.");
+    }
+
     await Pole.updateOne(
       { pole_id: poleId },
       {
         status: "Active",
       }
     );
+
+    await Tasks.updateOne(
+      { pole_id: poleId, technician_id: technicianId },
+      {
+        pole_id: updatedHistory.pole_id,
+        technician_id: updatedHistory.technician_id,
+        status: updatedHistory.status,
+        timestamp: updatedHistory.date_time,
+        severity: updatedHistory.severity,
+      },
+      { upsert: true }
+    );
   } catch (err) {
-    throw new Error(`Failed to update history entry: ${err.message}`);
+    throw new Error(`Failed to update history, pole, and task: ${err.message}`);
   }
 };
 
@@ -591,20 +622,48 @@ const findTechnicianById = async (id) => {
   }
 };
 
+const addTechnicianTask = async (technician_id, pole_id) => {
+  try {
+    const historyRecord = await History.findOne({ technician_id, pole_id });
+
+    if (!historyRecord) {
+      throw new Error(
+        "No history record found for the provided technician_id and pole_id."
+      );
+    }
+
+    await Tasks.updateOne(
+      { technician_id, pole_id },
+      {
+        pole_id: historyRecord.pole_id,
+        technician_id: historyRecord.technician_id,
+        status: historyRecord.status,
+        timestamp: historyRecord.date_time,
+        severity: historyRecord.severity,
+      },
+      { upsert: true }
+    );
+  } catch (err) {
+    throw new Error(`Failed to update task: ${err.message}`);
+  }
+};
+
 async function findTechnician(id, password) {
   try {
     const technician = await Technician.findOne({ technician_id: id });
 
-    if (!technician) return null; // No technician found
+    if (!technician) return null;
 
     const isMatch = await bcrypt.compare(password, technician.password);
 
-    if (!isMatch) return null; // Password doesn't match
+    if (!isMatch) return null;
 
-    return technician; // Login successful
+    const { password: _, ...technicianWithoutPassword } = technician.toObject();
+    console.log(technicianWithoutPassword);
+    return technicianWithoutPassword;
   } catch (error) {
     console.error("Error during login:", error);
-    return null; 
+    return null;  
   }
 }
 

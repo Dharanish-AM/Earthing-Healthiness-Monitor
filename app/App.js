@@ -4,6 +4,7 @@ import AuthScreen from "./screens/AuthScreen";
 import MainScreen from "./screens/MainScreen";
 
 export default function App() {
+
   const Stack = createNativeStackNavigator();
   return (
     <NavigationContainer>
@@ -14,7 +15,7 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Home"
+          name="HomeScreen"
           component={MainScreen}
           options={{ headerShown: false }}
         />

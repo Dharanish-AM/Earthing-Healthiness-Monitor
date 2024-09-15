@@ -1,15 +1,26 @@
 import styles from "../styles";
 import { Button, Text, TextInput, View } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function AuthScreen({ navigation }) {
-  const [technicianid, setTechnicianId] = useState("");
+  const [technicianId, setTechnicianId] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    async function checkUser() {
+      const technician = await AsyncStorage.getItem("technician");
+      console.log(technician);
+      if (technician) {
+        navigation.navigate("HomeScreen");
+      }
+    }
+    checkUser();
+  }, []);
+
   async function handleSubmit() {
-    navigation.navigate("Home");
-    if (!technicianid || !password) {
+    if (!technicianId || !password) {
       console.log("Please fill in all fields");
       return;
     }
@@ -18,7 +29,7 @@ function AuthScreen({ navigation }) {
       const response = await axios.post(
         "http://192.168.1.150:8000/technicianlogin",
         {
-          tid: technicianid,
+          tid: technicianId,
           tpassword: password,
         }
       );
@@ -26,7 +37,12 @@ function AuthScreen({ navigation }) {
       const data = response.data;
       if (data.message === "Login successful") {
         console.log("Login successful");
-        navigation.navigate("Home");
+        await AsyncStorage.setItem(
+          "technician",
+          JSON.stringify(data.technician)
+        );
+
+        navigation.navigate("HomeScreen");
       } else {
         console.log(data.message);
       }
@@ -40,27 +56,37 @@ function AuthScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text>Earthing Tracking Alert System</Text>
-      <Text>LOGIN PORTAL</Text>
+      <View style={styles.heading}>
+        <View style={styles.headingInnerContainer}>
+          <Text style={styles.headingText}>Earthing Tracking Alert System</Text>
+        </View>
+      </View>
 
-      <TextInput
-        style={styles.inputcontainer}
-        placeholder="Enter your ID..."
-        value={technicianid}
-        onChangeText={setTechnicianId}
-      />
+      <View style={styles.content}>
+        <View style={styles.contentLogin}>
+          <Text style={styles.contentLoginText}>LOGIN PORTAL</Text>
+        </View>
 
-      <TextInput
-        style={styles.inputcontainer}
-        placeholder="Enter your Password..."
-        secureTextEntry={true}
-        value={password}
-        onChangeText={setPassword}
-      />
+        <Text style={styles.contentText}>TECHNICIAN ID</Text>
+        <TextInput
+          style={styles.inputcontainer}
+          placeholder="Enter your ID..."
+          value={technicianId}
+          onChangeText={setTechnicianId}
+        />
+        <Text>PASSWORD</Text>
+        <TextInput
+          style={styles.inputcontainer}
+          placeholder="Enter your Password..."
+          secureTextEntry={true}
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      <Button title="Login" onPress={handleSubmit} />
+        <Button title="Login" onPress={handleSubmit} />
 
-      <Text>Forgot Password? Click Here</Text>
+        <Text>Forgot Password? Click Here</Text>
+      </View>
     </View>
   );
 }

@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "start:client": "cd client && npm start",
+    "start:server": "cd server && npm start",
+    "start:app": "cd app && npm start",
+    "start": "concurrently \"npm run start:client\" \"npm run start:server\" \"npm run start:app\""
+  },
+  "dependencies": {
+    "@fontsource/montserrat": "^5.1.0",
+    "concurrently": "^9.0.1",
+    "react-native-web": "^0.19.12"
+  }
+}

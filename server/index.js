@@ -350,6 +350,11 @@ app.get("/getactivetechnicians", async (req, res) => {
   }
 });
 
+app.get("/gettask", async (req, res) => {
+  console.log(req.params);
+  res.send({"message":"hi"})
+});
+
 //App
 app.post("/technicianlogin", async (req, res) => {
   const { tid, tpassword } = req.body;
