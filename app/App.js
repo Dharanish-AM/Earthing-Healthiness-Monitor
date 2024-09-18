@@ -4,7 +4,6 @@ import AuthScreen from "./screens/AuthScreen";
 import MainScreen from "./screens/MainScreen";
 
 export default function App() {
-
   const Stack = createNativeStackNavigator();
   return (
     <NavigationContainer>

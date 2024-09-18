@@ -41,6 +41,7 @@ const {
   updatePoleTechnician,
   findTechnicianById,
   findTechnician,
+  getTask,
 } = require("./database/db");
 
 const { verifyToken } = require("./middleware/Token");
@@ -350,11 +351,6 @@ app.get("/getactivetechnicians", async (req, res) => {
   }
 });
 
-app.get("/gettask", async (req, res) => {
-  console.log(req.params);
-  res.send({"message":"hi"})
-});
-
 //App
 app.post("/technicianlogin", async (req, res) => {
   const { tid, tpassword } = req.body;
@@ -369,6 +365,17 @@ app.post("/technicianlogin", async (req, res) => {
     return res.status(200).json({ message: "Login successful", technician });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error });
+  }
+});
+
+app.get("/gettask", async (req, res) => {
+  const { technician_id } = req.query;
+  console.log(technician_id);
+  try {
+    const task = await getTask(technician_id);
+    res.status(200).json({ task });
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching task" });
   }
 });
 

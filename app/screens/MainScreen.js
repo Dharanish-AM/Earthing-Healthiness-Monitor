@@ -3,34 +3,44 @@ import styles from "../styles";
 import { View, Text, Button } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { IP } from "@env";
 
 function MainScreen({ navigation }) {
   const [errorpole, setErrorPole] = useState([]);
+  const [task, settask] = useState({});
 
   useEffect(() => {
-    async () => {
+    let intervalId;
+
+    async function getTechnicianAndData() {
       const storedTechnician = await AsyncStorage.getItem("technician");
-      if (storedTechnician == null) {
+
+      if (!storedTechnician) {
         navigation.navigate("AuthScreen");
+        return;
       }
-      console.log("Stored Technician:", storedTechnician);
-    };
-    async function getPoleHistoryData() {
-      try {
-        const response = await axios.get("http://192.168.1.150:8000/gettask", {
-          params: {
-            technician_id: storedTechnician.name,
-          },
-        });
-        console.log(response.data);
-      } catch (error) {
-        setErrorPole(error.message);
-      }
+
+      const technician = JSON.parse(storedTechnician);
+
+      const getPoleHistoryData = async () => {
+        try {
+          const response = await axios.get(`http://${IP}:8000/gettask`, {
+            params: {
+              technician_id: technician.technician_id,
+            },
+          });
+          console.log(response.data.task);
+          settask(response.data.task);
+        } catch (error) {
+          setErrorPole(error.message);
+        }
+      };
+
+      await getPoleHistoryData();
+      intervalId = setInterval(getPoleHistoryData, 60000);
     }
 
-    getPoleHistoryData();
-
-    const intervalId = setInterval(getPoleHistoryData, 60000);
+    getTechnicianAndData();
 
     return () => clearInterval(intervalId);
   }, []);
@@ -45,6 +55,10 @@ function MainScreen({ navigation }) {
           navigation.navigate("AuthScreen");
         }}
       />
+      <View>
+        <Text style={styles.title}>Tasks</Text>
+        <Text>{task.pole_id}</Text>
+      </View>
     </View>
   );
 }

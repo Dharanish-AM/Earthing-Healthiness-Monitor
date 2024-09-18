@@ -3,6 +3,7 @@ import { Button, Text, TextInput, View } from "react-native";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { IP } from "@env";
 
 function AuthScreen({ navigation }) {
   const [technicianId, setTechnicianId] = useState("");
@@ -11,9 +12,8 @@ function AuthScreen({ navigation }) {
   useEffect(() => {
     async function checkUser() {
       const technician = await AsyncStorage.getItem("technician");
-      console.log(technician);
       if (technician) {
-        navigation.navigate("HomeScreen");
+        navigation.replace("HomeScreen");
       }
     }
     checkUser();
@@ -26,13 +26,10 @@ function AuthScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post(
-        "http://192.168.1.150:8000/technicianlogin",
-        {
-          tid: technicianId,
-          tpassword: password,
-        }
-      );
+      const response = await axios.post(`http://${IP}:8000/technicianlogin`, {
+        tid: technicianId,
+        tpassword: password,
+      });
 
       const data = response.data;
       if (data.message === "Login successful") {
@@ -42,7 +39,7 @@ function AuthScreen({ navigation }) {
           JSON.stringify(data.technician)
         );
 
-        navigation.navigate("HomeScreen");
+        navigation.replace("HomeScreen");
       } else {
         console.log(data.message);
       }

@@ -663,7 +663,17 @@ async function findTechnician(id, password) {
     return technicianWithoutPassword;
   } catch (error) {
     console.error("Error during login:", error);
-    return null;  
+    return null;
+  }
+}
+
+async function getTask(technician_id) {
+  try {
+    const task = await Tasks.findOne({ technician_id });
+    return task;
+  } catch (error) {
+    console.error("Error during getting task:", error);
+    return null;
   }
 }
 
@@ -709,4 +719,5 @@ module.exports = {
   updatePoleTechnician,
   findTechnicianById,
   findTechnician,
+  getTask,
 };
