@@ -41,6 +41,7 @@ const {
   updatePoleTechnician,
   findTechnicianById,
   findTechnician,
+  setTaskCompleted,
   getTask,
 } = require("./database/db");
 
@@ -50,7 +51,7 @@ app.use(express.json());
 
 app.post("/login", async (req, res) => {
   const { emp_id, password } = req.body;
-  console.log(emp_id, password);
+  ////console.log(emp_id, password);
   try {
     const token = await Login(emp_id, password);
     if (token) {
@@ -108,12 +109,12 @@ app.post("/addtechnician", async (req, res) => {
       phone,
       address,
       password
-    );
+    ); 
 
-    console.log("New Technician:", newTechnician);
+    //console.log("New Technician:", newTechnician);
 
     const msg = {
-      to: email,
+      to: email, 
       from: "dharanish816@gmail.com",
       subject: "Log In Now",
       templateId: "d-25f0d4acebd84e62b66e7210e181e02b",
@@ -124,7 +125,7 @@ app.post("/addtechnician", async (req, res) => {
     };
     try {
       await sgMail.send(msg);
-      console.log("Email sent successfully");
+      //console.log("Email sent successfully");
     } catch (emailError) {
       console.error("Error sending email:", emailError.response.body.errors);
     }
@@ -148,7 +149,7 @@ app.post("/addemployee", async (req, res) => {
       password
     );
 
-    console.log("New Employee:", newEmployee);
+    //console.log("New Employee:", newEmployee);
 
     const msg = {
       to: email,
@@ -163,7 +164,7 @@ app.post("/addemployee", async (req, res) => {
 
     try {
       await sgMail.send(msg);
-      console.log("Email sent successfully");
+      //console.log("Email sent successfully");
       res.status(201).json({ success: true, employee: newEmployee });
     } catch (emailError) {
       console.error("Error sending email:", emailError.response.body.errors);
@@ -198,11 +199,11 @@ app.get("/technicians", async (req, res) => {
 app.post("/loradata", async (req, res) => {
   try {
     const data = req.body.data;
-    console.log("Received data:", data);
+    //console.log("Received data:", data);
 
     var current = Number(data.ct);
     if (isNaN(current)) {
-      console.log("Invalid current value:", data.ct);
+      //console.log("Invalid current value:", data.ct);
       return res.status(400).json({ message: "Invalid current value" });
     }
     if (current <= 0) {
@@ -211,12 +212,17 @@ app.post("/loradata", async (req, res) => {
     await setCurrentInfo(data.id, current);
 
     if (current > 1) {
+      //threshold
+      desc = "Low";
+      if (current >= 5) {
+        desc = "High";
+      }
       const poleDetails = await getPoleDetails(data.id);
       if (poleDetails) {
         const status = "Pending";
-        const technician_id = "not-assigned";
-        const severity = "High";
-        const description = "null";
+        const technician_id = "Not Assigned";
+        const severity = desc;
+        const description = "N/A";
         //const description = "High current detected";
 
         await setHistoryInfo(
@@ -305,7 +311,7 @@ app.get("/getpoledeatils", async (req, res) => {
 app.get("/gethistoryinfo", async (req, res) => {
   try {
     const historyInfo = await getHistoryInfo();
-    console.log(historyInfo);
+    //console.log(historyInfo);
     res.status(200).json({
       success: true,
       data: historyInfo,
@@ -338,6 +344,7 @@ app.post("/assigntechnician", async (req, res) => {
       message: "Technician assigned and history updated successfully",
     });
   } catch (err) {
+    console.log(err.message)
     res.status(500).json({ error: err.message });
   }
 });
@@ -370,12 +377,34 @@ app.post("/technicianlogin", async (req, res) => {
 
 app.get("/gettask", async (req, res) => {
   const { technician_id } = req.query;
-  console.log(technician_id);
+   (technician_id);
   try {
     const task = await getTask(technician_id);
     res.status(200).json({ task });
   } catch (error) {
     res.status(500).json({ error: "Error fetching task" });
+  }
+});
+
+app.post("/settaskcompleted", async (req, res) => {
+  const { pole_id, technician_id, datetime_completed, description } = req.body;
+
+  try {
+    const task = await setTaskCompleted(
+      pole_id,
+      technician_id,
+      datetime_completed,
+      description
+    );
+
+    if (task) {
+      res.status(200).json({ message: "Task successfully completed" });
+    } else {
+      res.status(404).json({ message: "Task not found" });
+    }
+  } catch (error) {
+    console.error("Error setting task completed:", error);
+    res.status(500).json({ error: "Error setting task completed" });
   }
 });
 

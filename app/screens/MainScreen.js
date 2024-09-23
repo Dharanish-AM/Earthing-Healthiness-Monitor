@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
-import styles from "../styles";
-import { View, Text, Button } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IP } from "@env";
 
 function MainScreen({ navigation }) {
-  const [errorpole, setErrorPole] = useState([]);
-  const [task, settask] = useState({});
+  const [errorPole, setErrorPole] = useState("");
+  const [task, setTask] = useState(null);
 
   useEffect(() => {
     let intervalId;
@@ -30,7 +35,7 @@ function MainScreen({ navigation }) {
             },
           });
           console.log(response.data.task);
-          settask(response.data.task);
+          setTask(response.data.task);
         } catch (error) {
           setErrorPole(error.message);
         }
@@ -45,11 +50,27 @@ function MainScreen({ navigation }) {
     return () => clearInterval(intervalId);
   }, []);
 
+  if (errorPole) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Error: {errorPole}</Text>
+      </View>
+    );
+  }
+
+  if (!task) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to the app</Text>
       <Button
-        title="LOGOUT !"
+        title="LOGOUT"
         onPress={() => {
           AsyncStorage.removeItem("technician");
           navigation.navigate("AuthScreen");
@@ -57,10 +78,36 @@ function MainScreen({ navigation }) {
       />
       <View>
         <Text style={styles.title}>Tasks</Text>
-        <Text>{task.pole_id}</Text>
+        <Text>Pole ID: {task.pole_id}</Text>
+        <Text>Location: {task.location}</Text>
+        <Text>Severity: {task.severity}</Text>
+        <Text>Status: {task.status}</Text>
+        <Text>Technician ID: {task.technician_id}</Text>
+        <Text>Task Start Date: {task.taskstart_date}</Text>
+        <Text>
+          Task End Date: {task.taskend_date ? task.taskend_date : "N/A"}
+        </Text>
+        <Text>
+          Coordinates:{" "}
+          {Array.isArray(task.coordinates)
+            ? task.coordinates.join(", ")
+            : "N/A"}
+        </Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+  },
+});
 
 export default MainScreen;

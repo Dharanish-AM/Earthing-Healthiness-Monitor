@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import axios from "axios";
 import TechnicianPopup from "../components/TechnicianPopup";
 import * as XLSX from "xlsx";
+import { useNavigate } from "react-router";
 
 function History() {
   const [polesDetails, setPolesDetails] = useState([]);
@@ -11,6 +12,7 @@ function History() {
   const [selectedPoleId, setSelectedPoleId] = useState(null);
   const [technicianDetails, setTechnicianDetails] = useState(null);
   const [showTechnicianDetails, setShowTechnicianDetails] = useState(false);
+  const navigator = useNavigate();
 
   useEffect(() => {
     const fetchPolesDetails = async () => {
@@ -34,7 +36,7 @@ function History() {
   }, []);
 
   const handleAssignTechnician = (poleId, technicianId) => {
-    if (technicianId && technicianId !== "not-assigned") {
+    if (technicianId && technicianId !== "Not Assigned") {
       alert("This pole already has a technician assigned.");
       return;
     }
@@ -44,6 +46,7 @@ function History() {
 
   const handleViewDetails = (poleId) => {
     console.log(`View details for pole ${poleId}`);
+    navigator(`/dashboard/poles?poleid=${poleId}`);
   };
 
   const handleShowTechnicianDetails = async (technicianId) => {
@@ -51,7 +54,7 @@ function History() {
       const response = await axios.get(
         `http://localhost:8000/gettechniciandetails/${technicianId}`
       );
-      console.log('Technician Details Response:', response.data);
+      console.log("Technician Details Response:", response.data);
       setTechnicianDetails(response.data.data);
       setShowTechnicianDetails(true);
     } catch (error) {
@@ -66,7 +69,7 @@ function History() {
       { header: "Date & Time", key: "date_time" },
       { header: "Technician ID", key: "technician_id" },
       { header: "Severity", key: "severity" },
-      { header: "Repaired On", key: "repaired_on" },
+      { header: "Repaired On", key: "lastrepaired_on" },
       { header: "Description", key: "description" },
     ];
 
@@ -76,8 +79,8 @@ function History() {
       date_time: new Date(detail.date_time).toLocaleString(),
       technician_id: detail.technician_id || "N/A",
       severity: detail.severity || "N/A",
-      repaired_on: detail.repaired_on
-        ? new Date(detail.repaired_on).toLocaleString()
+      lastrepaired_on: detail.lastrepaired_on
+        ? new Date(detail.lastrepaired_on).toLocaleString()
         : "N/A",
       description: detail.description || "No description",
     }));
@@ -136,14 +139,14 @@ function History() {
                   <td>{historyDetail.technician_id || "N/A"}</td>
                   <td>{historyDetail.severity || "N/A"}</td>
                   <td>
-                    {historyDetail.repaired_on
-                      ? new Date(historyDetail.repaired_on).toLocaleString()
+                    {historyDetail.lastrepaired_on
+                      ? new Date(historyDetail.lastrepaired_on).toLocaleString()
                       : "N/A"}
                   </td>
                   <td>{historyDetail.description || "No description"}</td>
                   <td>
                     {historyDetail.status === "Pending" &&
-                      historyDetail.technician_id === "not-assigned" && (
+                      historyDetail.technician_id === "Not Assigned" && (
                         <button
                           className="assign-technician-button"
                           onClick={() =>
@@ -161,7 +164,10 @@ function History() {
                         <button
                           className="in-progress-button"
                           onClick={() => {
-                            console.log("Technician ID:", historyDetail.technician_id);
+                            console.log(
+                              "Technician ID:",
+                              historyDetail.technician_id
+                            );
                             handleShowTechnicianDetails(
                               historyDetail.technician_id
                             );

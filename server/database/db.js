@@ -53,7 +53,7 @@ const poleSchema = new mongoose.Schema({
     enum: ["Active", "Inactive", "Under Maintenance", "Error"],
     default: "Active",
   },
-  last_maintenance: { type: Date, default: null },
+  maintenance_details: { type: [String], default: "n/a" },
   total: { type: Number, default: 0, min: 0 },
   count: { type: Number, default: 0, min: 0 },
   day_average: [
@@ -169,7 +169,7 @@ const historySchema = new mongoose.Schema({
   },
   technician_id: { type: String, required: true, index: true },
   severity: { type: String, enum: ["Low", "Medium", "High"] },
-  repaired_on: { type: Date, default: null },
+  lastrepaired_on: { type: Date, default: null },
   description: { type: String, trim: true },
 });
 
@@ -181,8 +181,12 @@ const TasksSchema = new mongoose.Schema({
     required: true,
     enum: ["Fixed", "Pending", "In Progress"],
   },
-  timestamp: { type: Date, default: null },
+  taskstart_date: { type: Date, default: null },
+  taskend_date: { type: Date, default: null },
   severity: { type: String, default: null },
+  location: { type: String, default: null },
+  coordinates: { type: [String], default: null },
+  description: { type: String },
 });
 
 const Pole = mongoose.model("Pole", poleSchema);
@@ -195,21 +199,21 @@ async function Login(employee_id, password) {
   try {
     const employee = await Employee.findOne({ employee_id });
     if (!employee) {
-      console.log("Invalid User");
+      //console.log("Invalid User");
       return null;
     }
 
     const isMatch = await bcrypt.compare(password, employee.password);
     if (isMatch) {
-      console.log("User Valid");
+      //console.log("User Valid");
       const token = jwt.sign(
         { employee_id: employee.employee_id },
         process.env.JWT_KEY
       );
-      console.log("JWT Token:", token);
+      //console.log("JWT Token:", token);
       return token;
     } else {
-      console.log("Invalid User");
+      //console.log("Invalid User");
       return null;
     }
   } catch (err) {
@@ -268,7 +272,7 @@ async function addTechnician(name, age, email, phone, address, password) {
       password: hashedPassword,
     });
     const savedTechnician = await technician.save();
-    console.log("Technician added:", savedTechnician);
+    //console.log("Technician added:", savedTechnician);
     return savedTechnician;
   } catch (err) {
     console.error("Error while adding technician:", err);
@@ -285,7 +289,7 @@ async function addPole(lat, long, location) {
       location,
     });
     const result = await pole.save();
-    console.log("Pole added:", result);
+    //console.log("Pole added:", result);
     return result;
   } catch (error) {
     console.error("Error while adding pole:", error);
@@ -297,7 +301,7 @@ async function fetchPoleID() {
   try {
     const Poles = await Pole.find();
     const PoleIDs = Poles.map((Pole) => Pole.pole_id);
-    console.log("Pole IDs:", PoleIDs);
+    //console.log("Pole IDs:", PoleIDs);
     return PoleIDs;
   } catch (error) {
     console.error("Error fetching pole IDs:", error);
@@ -308,7 +312,7 @@ async function fetchPoleCords() {
   try {
     const Poles = await Pole.find();
     const PoleCords = Poles.map((Pole) => Pole.coordinates);
-    console.log("Pole Coordinates:", PoleCords);
+    //console.log("Pole Coordinates:", PoleCords);
     return PoleCords;
   } catch (err) {
     console.error("Error fetching pole cords:", err);
@@ -319,11 +323,11 @@ async function getPolesDetails() {
   try {
     const poles = await Pole.find({}, "pole_id coordinates status location");
     if (!poles.length) {
-      console.log("Poles not found");
+      //console.log("Poles not found");
       return null;
     }
 
-    console.log("Poles Details:", poles);
+    //console.log("Poles Details:", poles);
     return poles;
   } catch (err) {
     console.error("Error fetching poles details:", err);
@@ -335,7 +339,7 @@ async function assignTechnician(pole_id, technician_id) {
     const pole = await Pole.findOne({ pole_id });
 
     if (!pole) {
-      console.log("Pole not found");
+      //console.log("Pole not found");
       return null;
     }
 
@@ -343,7 +347,7 @@ async function assignTechnician(pole_id, technician_id) {
 
     const updatedPole = await pole.save();
 
-    console.log("Technician assigned:", updatedPole);
+    //console.log("Technician assigned:", updatedPole);
     return updatedPole;
   } catch (err) {
     console.error("Error assigning technician:", err);
@@ -353,7 +357,7 @@ async function assignTechnician(pole_id, technician_id) {
 async function fetchHistory() {
   try {
     const history = await History.find().sort({ date_time: -1 });
-    console.log("History:", history);
+    //console.log("History:", history);
     return history;
   } catch (error) {
     console.error("Error while fetching history:", error);
@@ -363,7 +367,7 @@ async function fetchHistory() {
 async function getAllTechnicians() {
   try {
     const technicians = await Technician.find();
-    console.log("Technicians:", technicians);
+    //console.log("Technicians:", technicians);
     return technicians;
   } catch (err) {
     console.error("Error fetching technicians:", err);
@@ -374,10 +378,10 @@ async function fetchEmployeeDetails(emp_id) {
   try {
     const employee = await Employee.findOne({ employee_id: emp_id });
     if (!employee) {
-      console.log("Employee not found");
+      //console.log("Employee not found");
       return null;
     }
-    console.log("Employee Details:", employee);
+    //console.log("Employee Details:", employee);
     return employee;
   } catch (err) {
     console.error("Error fetching employee details:", err);
@@ -389,10 +393,10 @@ async function fetchAllEmployeesDetails() {
   try {
     const employees = await Employee.find();
     if (employees.length === 0) {
-      console.log("No employees found");
+      //console.log("No employees found");
       return [];
     }
-    console.log("Employee Details:", employees);
+    //console.log("Employee Details:", employees);
     return employees;
   } catch (err) {
     console.error("Error fetching employee details:", err);
@@ -405,10 +409,10 @@ async function fetchPolesStatus() {
     const poles = await Pole.find({}, "pole_id status day_average");
 
     if (!poles || poles.length === 0) {
-      console.log("No poles found");
+      //console.log("No poles found");
       return [];
     }
-    console.log("Pole Statuses:", poles);
+    //console.log("Pole Statuses:", poles);
     return poles;
   } catch (err) {
     console.error("Error fetching pole statuses:", err);
@@ -429,7 +433,7 @@ async function fetchActiveTechnicians() {
 async function fetchAllEmployees() {
   try {
     const employees = await Employee.find();
-    console.log("All Employees:", employees);
+    //console.log("All Employees:", employees);
     return employees;
   } catch (err) {
     console.error("Error fetching all employees:", err);
@@ -442,14 +446,12 @@ async function setCurrentInfo(pole_id, current) {
     const pole = await Pole.findOne({ pole_id });
 
     if (!pole) {
-      console.log(`Pole with ID ${pole_id} not found.`);
+      //console.log(`Pole with ID ${pole_id} not found.`);
       return;
     }
 
     if (typeof current !== "number" || current < 0) {
-      console.log(
-        `Invalid current value: ${current}. Must be a non-negative number.`
-      );
+      //console.log(`Invalid current value: ${current}. Must be a non-negative number.`);
       return;
     }
 
@@ -458,6 +460,7 @@ async function setCurrentInfo(pole_id, current) {
     pole.count++;
 
     if (current > 1) {
+      //threshold
       pole.status = "Error";
     }
 
@@ -474,7 +477,7 @@ async function setCurrentInfo(pole_id, current) {
     }
 
     await pole.save();
-    console.log(`Pole ID ${pole_id} updated successfully.`);
+    //console.log(`Pole ID ${pole_id} updated successfully.`);
   } catch (err) {
     console.error("Error while setting current information:", err);
   }
@@ -482,16 +485,16 @@ async function setCurrentInfo(pole_id, current) {
 
 async function getCurrentInfo(pole_id) {
   try {
-    console.log("Searching for pole with ID:", pole_id);
+    //console.log("Searching for pole with ID:", pole_id);
     const poledetails = await Pole.findOne({ pole_id: "P000001" });
     if (!poledetails) {
       console.error(`Pole not found for ID: ${pole_id}`);
       throw new Error("Pole not found");
     }
-    console.log(poledetails);
-    console.log(poledetails.status);
+    //console.log(poledetails);
+    //console.log(poledetails.status);
     const { time, current } = poledetails.daily_average[0];
-    console.log(`Current info for pole ${pole_id}:`, { time, current });
+    //console.log(`Current info for pole ${pole_id}:`, { time, current });
     return { time, current };
   } catch (err) {
     console.error("Error in getCurrentInfo:", err);
@@ -502,7 +505,7 @@ async function getCurrentInfo(pole_id) {
 async function getAllPoleDetails() {
   try {
     const poleDetails = await Pole.find();
-    console.log("Poles Details:", poleDetails);
+    //console.log("Poles Details:", poleDetails);
     return poleDetails;
   } catch (err) {
     console.error("Error in getAllPoleDetails:", err);
@@ -528,6 +531,11 @@ const getHistoryInfo = async () => {
     const historyInfo = await History.find().sort({ date_time: -1 }).exec();
     return historyInfo;
   } catch (err) {
+    if (err.code === "ECONNRESET") {
+      //console.log("Connection reset, retrying...");
+      await new Promise((res) => setTimeout(res, 2000));
+      return await getHistoryInfo();
+    }
     throw new Error(`Failed to fetch history info: ${err.message}`);
   }
 };
@@ -548,7 +556,7 @@ async function setHistoryInfo(
       description,
     });
     await historyEntry.save();
-    console.log("History entry saved:", historyEntry);
+    //console.log("History entry saved:", historyEntry);
   } catch (err) {
     console.error("Error saving history entry:", err);
     throw err;
@@ -572,6 +580,11 @@ const updatePoleTechnician = async (
   description = null
 ) => {
   try {
+    const poledetails = await Pole.findOne({ pole_id: poleId });
+    if (!poledetails) {
+      throw new Error(`Pole with ID ${poleId} not found.`);
+    }
+
     const updatedHistory = await History.findOneAndUpdate(
       { pole_id: poleId },
       {
@@ -586,25 +599,33 @@ const updatePoleTechnician = async (
       throw new Error("Failed to update history. Record not found.");
     }
 
-    await Pole.updateOne(
-      { pole_id: poleId },
-      {
-        status: "Active",
-      }
-    );
+    await Pole.updateOne({ pole_id: poleId }, { status });
 
-    await Tasks.updateOne(
+    const taskUpdateResult = await Tasks.updateOne(
       { pole_id: poleId, technician_id: technicianId },
       {
         pole_id: updatedHistory.pole_id,
         technician_id: updatedHistory.technician_id,
         status: updatedHistory.status,
-        timestamp: updatedHistory.date_time,
+        taskstart_date: updatedHistory.date_time,
+        taskend_date: null,
         severity: updatedHistory.severity,
+        location: poledetails.location,
+        coordinates: poledetails.coordinates,
       },
       { upsert: true }
     );
+
+    if (
+      taskUpdateResult.nModified === 0 &&
+      taskUpdateResult.upserted === undefined
+    ) {
+      throw new Error("Failed to update or insert the task.");
+    }
+
+    //console.log("Task successfully updated");
   } catch (err) {
+    console.error(`Error in updatePoleTechnician: ${err.message}`);
     throw new Error(`Failed to update history, pole, and task: ${err.message}`);
   }
 };
@@ -612,7 +633,7 @@ const updatePoleTechnician = async (
 const findTechnicianById = async (id) => {
   try {
     const technician = await Technician.findOne({ technician_id: id });
-    console.log(technician);
+    //console.log(technician);
     if (!technician) {
       throw new Error("Technician not found");
     }
@@ -659,7 +680,7 @@ async function findTechnician(id, password) {
     if (!isMatch) return null;
 
     const { password: _, ...technicianWithoutPassword } = technician.toObject();
-    console.log(technicianWithoutPassword);
+    //console.log(technicianWithoutPassword);
     return technicianWithoutPassword;
   } catch (error) {
     console.error("Error during login:", error);
@@ -674,6 +695,43 @@ async function getTask(technician_id) {
   } catch (error) {
     console.error("Error during getting task:", error);
     return null;
+  }
+}
+
+async function setTaskCompleted(
+  pole_id,
+  technician_id,
+  datetime_completed,
+  description
+) {
+  try {
+    const poledetails = await Pole.findOne({ pole_id: pole_id });
+    const history = await History.findOne({ pole_id, technician_id });
+    if (!history) {
+      console.log(
+        `No task found for pole_id: ${pole_id}, technician_id: ${technician_id}`
+      );
+      return false;
+    }
+    if (poledetails.maintenance_details[0] == "") {
+      poledetails.maintenance_details[0](datetime_completed);
+    } else {
+      poledetails.maintenance_details.push(datetime_completed);
+    }
+    poledetails.description = description;
+    poledetails.status = "Active";
+
+    history.status = "Fixed";
+    history.lastrepaired_on = datetime_completed;
+    history.description = description;
+    await poledetails.save();
+    await history.save();
+
+    //console.log(`Task completed for pole_id: ${pole_id}, technician_id: ${technician_id}`);
+    return true;
+  } catch (error) {
+    console.error("Error during setting completed task", error);
+    throw new Error(error.message);
   }
 }
 
@@ -720,4 +778,5 @@ module.exports = {
   findTechnicianById,
   findTechnician,
   getTask,
+  setTaskCompleted,
 };

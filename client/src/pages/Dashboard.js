@@ -50,6 +50,7 @@ function Dashboard() {
           setPoleStatus(response.data.polesStatus);
           setActiveTechnicians(response.data.activeTechnicians);
           avgLeakageCurrent(response.data.polesStatus);
+          console.log(response.data.polesStatus)
         })
         .catch((error) => {
           console.error("Error fetching dashboard data:", error);
@@ -73,7 +74,7 @@ function Dashboard() {
     (poleStatus) => poleStatus.status === "Inactive"
   );
   const maintenancePoles = polesStatus.filter(
-    (poleStatus) => poleStatus.status === "Under Maintenance"
+    (poleStatus) => poleStatus.status === "In Progress"
   );
 
   function avgLeakageCurrent(polesStatus) {
