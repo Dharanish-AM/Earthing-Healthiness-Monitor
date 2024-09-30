@@ -1,120 +1,161 @@
-import "../App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "../components/Header";
-import Account from "../components/Account";
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router";
-import mapcurrpin from "../assets/icons8-current-location-48.png";
 import L from "leaflet";
+import pin from "../assets/pin.png";
+import axios from "axios";
+
+const customIcon = L.icon({
+  iconUrl: pin,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+const MapViewControl = ({ position, zoom }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(position, zoom);
+  }, [position, zoom, map]);
+
+  return null;
+};
 
 function Map() {
-    const [profile, setProfile] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
-    const [components] = useState([
-        "Component1", "Component2", "Component3", 
-        "Component4", "Component5", "Component6", 
-        "Component8", "Component9", "Component10"
-    ]);
-    const [position, setPosition] = useState(null);
+  const [polesDetails, setPolesDetails] = useState([]);
+  const [selectedPoleId, setSelectedPoleId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+  const [position, setPosition] = useState([51.505, -0.09]);
+  const [zoom, setZoom] = useState(12);
+  const markerRefs = useRef({});
 
-    useEffect(() => {
-        const updatePosition = () => {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    setPosition([pos.coords.latitude, pos.coords.longitude]);
-                    setLoading(false);
-                },
-                (err) => {
-                    console.error(err);
-                    setError("Failed to fetch location");
-                    setLoading(false);
-                }
-            );
-        };
+  useEffect(() => {
+    const fetchPoleDetails = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/getpolesdetailsmap"
+        );
+        setPolesDetails(response.data.polesdata);
+        if (response.data.polesdata.length > 0) {
+          setPosition(response.data.polesdata[0].coordinates);
+        }
+      } catch (error) {
+        console.error("Error fetching poles details:", error);
+      }
+    };
 
-        const intervalId = setInterval(updatePosition, 0); // Update every 10 seconds
-        return () => clearInterval(intervalId);
-    }, []);
+    fetchPoleDetails();
+    const intervalId = setInterval(fetchPoleDetails, 5000);
+    return () => clearInterval(intervalId);
+  }, [navigate]);
 
-    const customIcon = new L.Icon({
-        iconUrl: mapcurrpin,
-        iconSize: [40, 40],
-        iconAnchor: [19, 38],
-        popupAnchor: [0, -38],
-    });
+  const filteredPoles = polesDetails.filter((pole) =>
+    pole.pole_id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    function handleProfileClick() {
-        setProfile(true);
+  function viewPoleonMap(cords, poleId) {
+    setPosition(cords);
+    setZoom(17);
+    setSelectedPoleId(poleId);
+  }
+
+  function showPoleDetails(pole_id) {
+    navigate(`/dashboard/poles?poleid=${pole_id}`);
+  }
+
+  useEffect(() => {
+    if (selectedPoleId && markerRefs.current[selectedPoleId]) {
+      markerRefs.current[selectedPoleId].openPopup();
     }
+  }, [selectedPoleId]);
 
-    function handleCloseProfile() {
-        setProfile(false);
-    }
-
-    function handleSearchChange(event) {
-        setSearchTerm(event.target.value);
-    }
-
-    const filteredComponents = components.filter(component =>
-        component.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    function handleViewClick(sensorId) {
-        navigate(`/home/details?sensorid=${sensorId}`);
-    }
-
-    return (
-        <div className="map-container">
-            <Header onProfileClick={handleProfileClick} />
-            {profile && (
-                <>
-                    <div className="profile-backdrop" onClick={handleCloseProfile}></div>
-                    <Account onClose={handleCloseProfile} />
-                </>
+  return (
+    <section className="map-page-container">
+      <div className="map-page-container-header">
+        <Header />
+      </div>
+      <div className="map-page-container-content">
+        <div className="map-page-container-content-left">
+          <div className="map-page-container-content-left-search">
+            <input
+              type="text"
+              placeholder="Enter Pole ID to find"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="map-page-container-content-left-poleslist">
+            {filteredPoles.length > 0 ? (
+              filteredPoles.map((pole) => (
+                <div key={pole.pole_id || `pole-${pole.pole_id}`}>
+                  <p>
+                    <span className="bold-text">Pole ID:</span> {pole.pole_id}
+                  </p>
+                  <p>
+                    <span className="bold-text">Status:</span> {pole.status}
+                  </p>
+                  <p>
+                    <span className="bold-text">Location:</span> {pole.location}
+                  </p>
+                  <button
+                    onClick={() =>
+                      viewPoleonMap(pole.coordinates, pole.pole_id)
+                    }
+                  >
+                    View
+                  </button>
+                  <button onClick={() => showPoleDetails(pole.pole_id)}>
+                    Details
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p>No poles found with the given criteria.</p>
             )}
-            <div className="map-main-container">
-                <div className="map-leftside">
-                    <input
-                        type="text"
-                        placeholder="Search components..."
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="search-bar"
-                        aria-label="Search components"
-                    />
-                    <ul className="component-list">
-                        {filteredComponents.map((component, index) => (
-                            <li key={index} className="component-item">
-                                {component}
-                                <button onClick={() => handleViewClick(component)}>
-                                    View
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="map-rightside">
-                    {loading && <p>Loading location...</p>}
-                    {error && <p>{error}</p>}
-                    {position && !loading && !error && (
-                        <MapContainer center={position} zoom={16} style={{ height: "100%", width: "100%" }}>
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-                            <Marker position={position} icon={customIcon}>
-                                <Popup>You are here</Popup>
-                            </Marker>
-                        </MapContainer>
-                    )}
-                </div>
-            </div>
+          </div>
         </div>
-    );
+        <div className="map-page-container-content-right">
+          <div
+            className="leaflet-container"
+            style={{ height: "100%", width: "100%" }}
+          >
+            <MapContainer
+              center={position}
+              zoom={zoom}
+              style={{ height: "100%", width: "100%" }}
+              scrollWheelZoom={true}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+              />
+              {polesDetails.map((pole) => (
+                <Marker
+                  key={pole.pole_id}
+                  position={pole.coordinates}
+                  icon={customIcon}
+                  ref={(el) => (markerRefs.current[pole.pole_id] = el)}
+                >
+                  <Popup>
+                    <div>
+                      <p>Pole ID: {pole.pole_id}</p>
+                      <p>Status: {pole.status}</p>
+                      <p>Location: {pole.location}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+              <MapViewControl position={position} zoom={zoom} />
+            </MapContainer>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default Map;

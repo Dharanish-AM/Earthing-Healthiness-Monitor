@@ -15,7 +15,7 @@ function verifyToken(req, res, next) {
 
     try {
       const decodedToken = jwt.verify(token, process.env.JWT_KEY);
-      console.log("Decoded Token Payload:", decodedToken);
+      //console.log("Decoded Token Payload:", decodedToken);
 
       req.user = decodedToken;
 
