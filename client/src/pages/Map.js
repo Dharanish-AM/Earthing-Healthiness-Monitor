@@ -30,7 +30,7 @@ function Map() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const [position, setPosition] = useState([51.505, -0.09]);
-  const [zoom, setZoom] = useState(12);
+  const [zoom, setZoom] = useState(18);
   const markerRefs = useRef({});
 
   useEffect(() => {

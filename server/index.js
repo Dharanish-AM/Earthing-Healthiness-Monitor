@@ -4,7 +4,7 @@ const port = 8000;
 const dotenv = require("dotenv");
 const cors = require("cors");
 const sgMail = require("@sendgrid/mail");
-
+ 
 app.use(
   cors({
     origin: "*",
@@ -145,10 +145,10 @@ app.post("/addemployee", async (req, res) => {
       age,
       email,
       phone,
-      address,
+      address,  
       password
     );
-
+ 
     //console.log("New Employee:", newEmployee);
 
     const msg = {
